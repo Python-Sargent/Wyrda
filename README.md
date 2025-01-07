@@ -1,0 +1,2 @@
+# Wyrda
+Luanti spellcasting mod
