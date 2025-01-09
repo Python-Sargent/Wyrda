@@ -1,2 +1,2 @@
 # Wyrda
-Luanti spellcasting mod
+A spellcasting/magic mod for luanti.
