@@ -18,16 +18,18 @@ wyrda.check_message = function(message)
     return nil
 end
 
-wyrda.cast = function(spell, player, message)
+wyrda.cast = function(spell, player, message, pos)
     if spell == nil then return end
-    spell.func(player, message)
+    return spell.func(player, message, pos)
 end
 
 core.register_on_chat_message(function(name, message)
     local msgparams = wyrda.check_message(message)
-    local contains = msgparams.spell
+    local contains = nil
+    if msgparams ~= nil then contains = msgparams.spell else return false end
+    local send_msg
     if contains ~= nil then
-        wyrda.cast(contains, core.get_player_by_name(name), message)
+        send_msg = wyrda.cast(contains, core.get_player_by_name(name), message, core.get_player_by_name(name):get_pos())
     end
     local msg = "<" .. name .. "> "
     for i, v in pairs(msgparams.words) do
@@ -37,8 +39,25 @@ core.register_on_chat_message(function(name, message)
             msg = msg .. msgparams.words[i] .. " "
         end 
     end
-    minetest.chat_send_all(msg)
+    if send_msg then minetest.chat_send_all(msg) end
     return true
 end)
 
+wyrda.pointed_to_pos = function(pointed)
+    if pointed ~= nil then
+        if pointed.type == "node" then
+            if pointed.above ~= nil then return pointed.above end
+            if pointed.under ~= nil then return pointed.under end
+        elseif pointed.type == "object" then
+            if pointed.ref ~= nil and pointed.ref:get_pos() ~= nil then return pointed.ref:get_pos() end
+        end
+        return vector.new(0, 0, 0)
+    else
+        return vector.new(0, 0, 0)
+    end
+end
+
 dofile(modpath .. "/spells.lua")
+dofile(modpath .. "/wands.lua")
+dofile(modpath .. "/books.lua")
+dofile(modpath .. "/inscription.lua")
