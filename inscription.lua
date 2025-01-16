@@ -1,12 +1,58 @@
 local create_formspec = function()
     local formspec = "formspec_version[6]" ..
                      "size[10.5,10]" ..
-                     "list[current_player;main;0.4,4.9;8,4;0]" ..
+                     "list[current_player;main;0.4,4.9;8,4;]" ..
                      "image[2.9,0.3;4.7,4.3;wyrda_inscription_table_bg.png]" ..
-                     "list[nodemeta;result;6.1,1.9;1,1;0]" ..
-                     "list[nodemeta;inscript;3.5,2.9;1,1;0]" ..
-                     "list[nodemeta;script;3.5,0.8;1,1;0]"
+                     "list[context;result;6.1,1.9;1,1;0]" ..
+                     "list[context;inscript;3.5,2.9;1,1;0]" ..
+                     "list[context;script;3.5,0.8;1,1;0]"
     return formspec
+end
+
+wyrda.inscription_recipes = {}
+
+wyrda.register_inscription_recipe = function(def)
+    wyrda.inscription_recipes[def.name] = {
+        script = def.script,
+        inscript = def.inscript,
+        result = def.result,
+    }
+end
+
+wyrda.register_inscription_recipe({
+    name = "basic_risier_wand",
+    script = "wyrda:risier_spell_book",
+    inscript = "wyrda:basic_wand",
+    result = "wyrda:basic_risier_wand",
+})
+
+wyrda.register_inscription_recipe({
+    name = "basic_fiera_wand",
+    script = "wyrda:fiera_spell_book",
+    inscript = "wyrda:basic_wand",
+    result = "wyrda:basic_fiera_wand",
+})
+
+wyrda.register_inscription_recipe({
+    name = "basic_disperim_wand",
+    script = "wyrda:disperim_spell_book",
+    inscript = "wyrda:basic_wand",
+    result = "wyrda:basic_disperim_wand",
+})
+
+wyrda.register_inscription_recipe({
+    name = "basic_sanium_wand",
+    script = "wyrda:sanium_spell_book",
+    inscript = "wyrda:basic_wand",
+    result = "wyrda:basic_sanium_wand",
+})
+
+wyrda.inscription_recipe = function(script, inscript)
+    local result
+    for i, v in pairs(wyrda.inscription_recipes) do
+        if v.script == script and v.inscript == inscript then result = v.result end
+    end
+    return result
 end
 
 core.register_node("wyrda:inscription_table", {
@@ -18,57 +64,51 @@ core.register_node("wyrda:inscription_table", {
     },
     groups = {choppy = 2, oddly_breakable_by_hand = 2},
     on_construct = function(pos)
-        local meta = minetest.get_meta(pos)
+        local meta = core.get_meta(pos)
         meta:set_string("infotext", "Inscription Table")
+        meta:set_string("formspec", create_formspec())
         local inv = meta:get_inventory()
         inv:set_size("script", 1*1)
         inv:set_size("inscript", 1*1)
         inv:set_size("result", 1*1)
     end,
-    on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
+    --[[on_rightclick = function(pos, node, clicker, itemstack, pointed_thing)
 		core.show_formspec(clicker:get_player_name(), "inscription_table", create_formspec())
-	end,
+	end,]]
     allow_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
-
+        if to_list == "result" then return 0 end
+        return count
     end,
-    -- Called when a player wants to move items inside the inventory.
-    -- Return value: number of items allowed to move.
-
     allow_metadata_inventory_put = function(pos, listname, index, stack, player)
-
-    end,
-    -- Called when a player wants to put something into the inventory.
-    -- Return value: number of items allowed to put.
-    -- Return value -1: Allow and don't modify item count in inventory.
-
-    allow_metadata_inventory_take = function(pos, listname, index, stack, player)
-        
-    end,
-    -- Called when a player wants to take something out of the inventory.
-    -- Return value: number of items allowed to take.
-    -- Return value -1: Allow and don't modify item count in inventory.
-
-    on_metadata_inventory_move = function(pos, from_list, from_index, to_list, to_index, count, player)
-        
+        if listname == "result" then return 0 end
+        return stack:get_count()
     end,
     on_metadata_inventory_put = function(pos, listname, index, stack, player)
-        
+        if listname == "script" or listname == "inscript" then
+            local meta = core.get_meta(pos)
+            local inv = meta:get_inventory()
+            local result = wyrda.inscription_recipe(inv:get_stack("script", 1):get_name(), inv:get_stack("inscript", 1):get_name())
+            if result ~= nil then
+                inv:set_stack("result", 1, result)
+            end
+        end
     end,
     on_metadata_inventory_take = function(pos, listname, index, stack, player)
-        
+        local meta = core.get_meta(pos)
+        local inv = meta:get_inventory()
+        if listname == "script" or listname == "inscript" then
+            --if inv:get_stack("result", 1) ~= nil then
+                --inv:take_item(inv:get_stack("result", 1))
+            --end
+            inv:set_stack("result", 1, "")
+        elseif listname == "result" then
+            inv:set_stack("script", 1, "")
+            inv:set_stack("inscript", 1, "")
+        end
     end,
     can_dig = function(pos, player)
         local meta = core.get_meta(pos);
         local inv = meta:get_inventory()
         return inv:is_empty("script") and inv:is_empty("inscript") and inv:is_empty("result")
-    end,
-    on_blast = function(pos)
-        if core.get_modpath("default") ~= nil then
-            local drops = {}
-            default.get_inventory_drops(pos, "main", drops)
-            drops[#drops+1] = name
-            minetest.remove_node(pos)
-            return drops
-        end
     end,
 })
