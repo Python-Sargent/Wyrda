@@ -28,13 +28,22 @@ function wyrda.energy.get_energy(player)
 	return tonumber(get_player_attribute(player, "wyrda:energy"))
 end
 
+function wyrda.energy.get_max_energy(player)
+	return tonumber(get_player_attribute(player, "wyrda:max_energy"))
+end
+
 function wyrda.energy.set_energy(player, level)
 	set_player_attribute(player, "wyrda:energy", level)
 	player:hud_change(
 		get_hud_id(player),
 		"number",
-		math.min(20, level)
+		math.min(wyrda.energy.get_max_energy(player) or 20, level)
 	)
+end
+
+function wyrda.energy.set_max_energy(player, level)
+	set_player_attribute(player, "wyrda:max_energy", level)
+	wyrda.energy.set_energy(player, level)
 end
 
 wyrda.energy.registered_on_update_energy = {}
@@ -66,7 +75,7 @@ function wyrda.energy.change_energy(player, change)
 	end
 	local level = wyrda.energy.get_energy(player) + change
 	level = math.max(level, 0)
-	level = math.min(level, 20)
+	level = math.min(level, wyrda.energy.get_max_energy(player) or 20)
 	wyrda.energy.update_energy(player, level)
 	return true
 end
@@ -113,7 +122,8 @@ end
 wyrda.energy_tick = function()
 	for _,player in ipairs(core.get_connected_players()) do
 		local energy = wyrda.energy.get_energy(player)
-		if energy < 20 then
+        local max_energy = wyrda.energy.get_max_energy(player) or 20
+		if energy < max_energy then
 			wyrda.energy.update_energy(player, energy + 1)
 		end
 	end
@@ -131,7 +141,7 @@ local energy_globaltimer = function(dtime)
 end
 
 core.register_on_joinplayer(function(player)
-	local level = wyrda.energy.get_energy(player) or 20
+	local level = wyrda.energy.get_energy(player) or wyrda.energy.get_max_energy(player) or 20
 	local id = player:hud_add({
 		name = "wyrda.energy",
 		hud_elem_type = "statbar",
@@ -140,15 +150,16 @@ core.register_on_joinplayer(function(player)
 		text = "wyrda_energy_hud_fg.png",
 		number = level,
 		text2 = "wyrda_energy_hud_bg.png",
-		item = 20,
+		item = wyrda.energy.get_max_energy(player) or 20,
 		alignment = {x = -1, y = -1},
-		offset = {x = -266, y = -120},
+		offset = {x = -265, y = -128},
 		max = 0,
 	})
 	set_hud_id(player, id)
 	wyrda.energy.set_energy(player, level)
-	-- reset poisoned
+    if not wyrda.energy.get_max_energy(player) then wyrda.energy.set_max_energy(player, level) end
 	set_player_attribute(player, "wyrda.energy:hud_id", nil)
+    core.log(tostring(wyrda.energy.get_max_energy(player)))
 end)
 
 core.register_on_leaveplayer(function(player)

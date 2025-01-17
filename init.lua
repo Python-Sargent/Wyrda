@@ -18,15 +18,6 @@ wyrda.check_message = function(message)
     return nil
 end
 
-wyrda.cast = function(spell, player, message, pos, type)
-    if spell == nil then return end
-    if type == 1 then 
-        return spell.func(player, message, pos)
-    elseif type == 2 then
-        return spell.func2(player, message, pos)
-    end
-end
-
 core.register_on_chat_message(function(name, message)
     local msgparams = wyrda.check_message(message)
     local contains = nil
@@ -61,8 +52,28 @@ wyrda.pointed_to_pos = function(pointed)
     end
 end
 
+dofile(modpath .. "/energy.lua")
+
+local function take_energy(spell, player)
+    if wyrda.energy.get_energy(player) > spell.cost then
+        wyrda.energy.change_energy(player, -spell.cost)
+        return true
+    end
+    return false
+end
+
+wyrda.cast = function(spell, player, message, pos, type)
+    if spell == nil then return end
+    if type == 1 then
+        local has_energy = take_energy(spell, player)
+        if has_energy then return spell.func(player, message, pos) end
+    elseif type == 2 then
+        local has_energy = take_energy(spell, player)
+        if has_energy then return spell.func2(player, message, pos) end
+    end
+end
+
 dofile(modpath .. "/spells.lua")
 dofile(modpath .. "/wands.lua")
 dofile(modpath .. "/books.lua")
 dofile(modpath .. "/inscription.lua")
-dofile(modpath .. "/energy.lua")
