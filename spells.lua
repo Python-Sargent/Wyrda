@@ -1,4 +1,6 @@
 wyrda.register_spell("repetim", {
+    name = "repetim",
+    descname = "Repetim",
     desc = "Speak without revealing yourself",
     cost = 1,
     cooldown = 0,
@@ -15,9 +17,11 @@ wyrda.register_spell("repetim", {
 })
 
 wyrda.register_spell("risier", {
+    name = "risier",
+    descname = "Risier",
     desc = "Cause yourself to rise",
     cost = 9,
-    cooldown = 1,
+    cooldown = 6,
     func = function(player, message, pos)
         local vel = player:get_velocity()
         local y = vel.y
@@ -37,9 +41,11 @@ wyrda.register_spell("risier", {
 
 if core.get_modpath("fire") ~= nil then
     wyrda.register_spell("fiera", {
+        name = "fiera",
+        descname = "Fiera",
         desc = "Burst into flames",
         cost = 5,
-        cooldown = 0.1,
+        cooldown = 2,
         func = function(player, message, pos)
             core.set_node(pos, {name="fire:basic_flame"})
             if message == "" then return false end -- (ditto)
@@ -56,9 +62,11 @@ if core.get_modpath("fire") ~= nil then
 end
 
 wyrda.register_spell("disperim", {
+    name = "disperim",
+    descname = "Disperim",
     desc = "Disperse nearby entities",
-    cost = 10,
-    cooldown = 1,
+    cost = 15,
+    cooldown = 5,
     func = function(player, message, pos)
         if pos == nil then return false end
         local objs = core.get_objects_inside_radius(player:get_pos(), 5)
@@ -85,9 +93,11 @@ wyrda.register_spell("disperim", {
 })
 
 wyrda.register_spell("sanium", {
+    name = "sanium",
+    descname = "Sanium",
     desc = "Heal your injuries",
-    cost = 10,
-    cooldown = 1,
+    cost = 9,
+    cooldown = 4,
     func = function(player, message, pos)
         local hp = player:get_hp()
         player:set_hp(math.min(20, hp + 4))
@@ -97,7 +107,7 @@ wyrda.register_spell("sanium", {
     func2 = function(player, message, pos)
         local hp = player:get_hp()
         player:set_hp(math.min(20, hp + 4))
-        local objs = core.get_objects_inside_radius(pos, 5)
+        local objs = core.get_objects_inside_radius(player:get_pos(), 5)
         for i, obj in pairs(objs) do
             if obj:get_player_name() ~= player:get_player_name() then
                 obj:set_hp(obj:get_hp() - 2)
@@ -110,9 +120,11 @@ wyrda.register_spell("sanium", {
 
 if core.get_modpath("tnt") ~= nil then
     wyrda.register_spell("expol", {
+        name = "expol",
+        descname = "Expol",
         desc = "Emit a powerful explosion",
-        cost = 6,
-        cooldown = 1,
+        cost = 19,
+        cooldown = 10,
         func = function(player, message, pos)
             local pos = player:get_pos()
             player:set_pos(vector.offset(pos, 0, 100, 0)) -- tp the player to be out of range of the explosion damage
@@ -136,7 +148,7 @@ if core.get_modpath("tnt") ~= nil then
                 ignore_protection = false,
             })
             player:set_pos(pos)
-            player:set_hp(player:get_hp() + 4)
+            player:set_hp(player:get_hp() - 8)
             if message == "" then return false end -- (ditto)
             return true
         end,
@@ -144,6 +156,8 @@ if core.get_modpath("tnt") ~= nil then
 end
 
 wyrda.register_spell("empty", {
+    name = "empty",
+    descname = "Empty",
     desc = "Empty Spell (does nothing)",
     cost = 0,
     cooldown = 0,

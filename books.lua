@@ -10,42 +10,6 @@ wyrda.register_book = function(params)
 end
 
 wyrda.register_book({
-    bookname = "Repetim",
-    spellname = "repetim",
-    color = "#888",
-})
-
-wyrda.register_book({
-    bookname = "Risier",
-    spellname = "risier",
-    color = "#48F",
-})
-
-wyrda.register_book({
-    bookname = "Fiera",
-    spellname = "fiera",
-    color = "#F84",
-})
-
-wyrda.register_book({
-    bookname = "Dispersion",
-    spellname = "disperim",
-    color = "#84F",
-})
-
-wyrda.register_book({
-    bookname = "Sanium",
-    spellname = "sanium",
-    color = "#F48",
-})
-
-wyrda.register_book({
-    bookname = "Expol",
-    spellname = "expol",
-    color = "#F44",
-})
-
-wyrda.register_book({
     bookname = "Empty",
     spellname = "empty",
     color = "#FFF",

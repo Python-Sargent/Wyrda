@@ -73,7 +73,8 @@ wyrda.cast = function(spell, player, message, pos, type)
     end
 end
 
-dofile(modpath .. "/spells.lua")
 dofile(modpath .. "/wands.lua")
-dofile(modpath .. "/books.lua")
 dofile(modpath .. "/inscription.lua")
+dofile(modpath .. "/spells.lua")
+dofile(modpath .. "/books.lua")
+dofile(modpath .. "/spell_gen.lua")

@@ -48,6 +48,11 @@ end
 function wyrda.energy.set_max_energy(player, level)
 	set_player_attribute(player, "wyrda:max_energy", level)
 	wyrda.energy.set_energy(player, level)
+    player:hud_change(
+		get_hud_id(player),
+		"item",
+		wyrda.energy.get_max_energy(player) or 20
+	)
 end
 
 function wyrda.energy.set_energy_recharge(player, level)
@@ -142,17 +147,18 @@ wyrda.energy_tick = function(player)
     end
 end
 
-local energy_timer = 0
+local energy_timers = {}
 
 local energy_globaltimer = function(dtime)
-	energy_timer = energy_timer + dtime
 
     local recharge = 1
 
     for _,player in ipairs(core.get_connected_players()) do
+        if not energy_timers[player:get_player_name()] then energy_timers[player:get_player_name()] = 0 end
+        energy_timers[player:get_player_name()] = energy_timers[player:get_player_name()] + dtime
 		local recharge = wyrda.energy.get_energy_recharge(player) or 1
-        if energy_timer > recharge then
-            energy_timer = 0
+        if energy_timers[player:get_player_name()] > recharge then
+            energy_timers[player:get_player_name()] = 0
             wyrda.energy_tick(player)
         end
 	end
@@ -175,9 +181,9 @@ core.register_on_joinplayer(function(player)
 	})
 	set_hud_id(player, id)
 	wyrda.energy.set_energy(player, level)
-    if not wyrda.energy.get_max_energy(player) then wyrda.energy.set_max_energy(player, level) end
+    if not wyrda.energy.get_max_energy(player) then wyrda.energy.set_max_energy(player, 20) end
     if not wyrda.energy.get_energy_recharge(player) then wyrda.energy.set_energy_recharge(player, 1) end
-	set_player_attribute(player, "wyrda.energy:hud_id", nil)
+	set_player_attribute(player, "wyrda:energy_hud_id", nil)
 end)
 
 core.register_on_leaveplayer(function(player)
@@ -189,3 +195,30 @@ core.register_globalstep(energy_globaltimer)
 core.register_on_respawnplayer(function(player)
 	wyrda.energy.update_energy(player, 0)
 end)
+
+core.register_chatcommand("energy", {
+    params = "set <attribute> <amount>\n" ..
+             "view",
+    description = "Set and view your energy attributes",
+    privs = {},
+    func = function(name, param)
+        local params = param:split(" ")
+        if params[1] == "set" then
+            local val = params[3]
+            if params[2] == "energy" then
+                if val ~= nil then wyrda.energy.set_energy(core.get_player_by_name(name), val) end
+            elseif params[2] == "max_energy" then
+                if val ~= nil then wyrda.energy.set_max_energy(core.get_player_by_name(name), val) end
+            elseif params[2] == "recharge_energy" then
+                if val ~= nil then wyrda.energy.set_energy_recharge(core.get_player_by_name(name), val) end
+            end
+        elseif params[1] == "view" then
+            core.chat_send_player(name,
+                "Energy: " .. tostring(wyrda.energy.get_energy(core.get_player_by_name(name))) .. " / " ..
+                "Max: " .. tostring(wyrda.energy.get_max_energy(core.get_player_by_name(name))) .. " : " ..
+                "Recharge: " .. tostring(wyrda.energy.get_energy_recharge(core.get_player_by_name(name)))
+            )
+        end
+        core.log("/energy " .. tostring(params[1]) .. " " .. tostring(params[2]) .. " " .. tostring(params[3]))
+    end,
+})
