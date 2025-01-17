@@ -18,9 +18,13 @@ wyrda.check_message = function(message)
     return nil
 end
 
-wyrda.cast = function(spell, player, message, pos)
+wyrda.cast = function(spell, player, message, pos, type)
     if spell == nil then return end
-    return spell.func(player, message, pos)
+    if type == 1 then 
+        return spell.func(player, message, pos)
+    elseif type == 2 then
+        return spell.func2(player, message, pos)
+    end
 end
 
 core.register_on_chat_message(function(name, message)
@@ -29,7 +33,7 @@ core.register_on_chat_message(function(name, message)
     if msgparams ~= nil then contains = msgparams.spell else return false end
     local send_msg
     if contains ~= nil then
-        send_msg = wyrda.cast(contains, core.get_player_by_name(name), message, core.get_player_by_name(name):get_pos())
+        send_msg = wyrda.cast(contains, core.get_player_by_name(name), message, core.get_player_by_name(name):get_pos(), 1)
     end
     local msg = "<" .. name .. "> "
     for i, v in pairs(msgparams.words) do

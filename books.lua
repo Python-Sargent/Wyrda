@@ -40,6 +40,12 @@ wyrda.register_book({
 })
 
 wyrda.register_book({
+    bookname = "Expol",
+    spellname = "expol",
+    color = "#F44",
+})
+
+wyrda.register_book({
     bookname = "Empty",
     spellname = "empty",
     color = "#FFF",

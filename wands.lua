@@ -4,13 +4,13 @@ local function setInt(meta, key, value)
     --return v
 end
 
-local wand_cast = function(itemstack, user, pointed_thing, params)
+local wand_cast = function(itemstack, user, pointed_thing, params, type)
     local meta = itemstack:get_meta()
     local cd = meta:get_int("cd")
     if cd == 0 then meta:set_int("cd", 2) end
     cd = meta:get_int("cd")
     if cd == 2 then
-        wyrda.cast(wyrda.spells[params.spellname], user, "", wyrda.pointed_to_pos(pointed_thing))
+        wyrda.cast(wyrda.spells[params.spellname], user, "", wyrda.pointed_to_pos(pointed_thing), type)
         --meta:set_int("cd", 1)
     end
     cd = meta:get_int("cd")
@@ -18,10 +18,30 @@ local wand_cast = function(itemstack, user, pointed_thing, params)
     return itemstack
 end
 
+local wand_on_place = function(params)
+    if params.spellname ~= nil and params.spellname ~= "" then
+        local rf = function(itemstack, placer, pointed_thing)
+            return wand_cast(itemstack, placer, pointed_thing, params, 2)
+        end
+        return rf
+    end
+    return function() end
+end
+
+local wand_on_secondary_use = function(params)
+    if params.spellname ~= nil and params.spellname ~= "" then
+        local rf = function(itemstack, user, pointed_thing)
+            return wand_cast(itemstack, user, pointed_thing, params, 2)
+        end
+        return rf
+    end
+    return function() end
+end
+
 local wand_on_use = function(params)
     if params.spellname ~= nil and params.spellname ~= "" then
         local rf = function(itemstack, user, pointed_thing)
-            return wand_cast(itemstack, user, pointed_thing, params)
+            return wand_cast(itemstack, user, pointed_thing, params, 1)
         end
         return rf
     end
@@ -34,26 +54,8 @@ wyrda.register_wand = function(params)
         inventory_image = params.invimage,
         stack_max = 1,
         groups = params.groups,
-        --[[on_place = function(itemstack, placer, pointed_thing)
-            local meta = itemstack:get_meta()
-            local cd = meta:get_int("cooldown")
-            if cd == nil then meta:set_int("cooldown", 0) end
-            if cd == 0 then
-                wyrda.cast(wyrda.spells[params.spellname], placer, "", wyrda.pointed_to_pos(pointed_thing))
-                meta:set_int("cooldown", 1)
-            end
-            core.after(params.cooldown, setInt, meta, "cooldown", 0)
-        end,
-        on_secondary_use = function(itemstack, user, pointed_thing)
-            local meta = itemstack:get_meta()
-            local cd = meta:get_int("cooldown")
-            if cd == nil then meta:set_int("cooldown", 0) end
-            if cd == 0 then
-                wyrda.cast(wyrda.spells[params.spellname], user, "", wyrda.pointed_to_pos(pointed_thing))
-                meta:set_int("cooldown", 1)
-            end
-            core.after(params.cooldown, setInt, meta, "cooldown", 0)
-        end,]]
+        on_place = wand_on_place(params),
+        on_secondary_use = wand_on_secondary_use(params),
         on_use = wand_on_use(params),
     })
 end
@@ -92,6 +94,15 @@ wyrda.register_wand({
     spellname = "sanium",
     groups = {wand = 1, not_in_creative_inventory = 1},
     cooldown = 4,
+})
+
+wyrda.register_wand({
+    itemname = "wyrda:basic_expol_wand",
+    name = "Basic Wand (Expol)\n" .. core.colorize("#AFA", wyrda.spells["expol"].desc),
+    invimage = "wyrda_basic_wand.png",
+    spellname = "expol",
+    groups = {wand = 1, not_in_creative_inventory = 1},
+    cooldown = 10,
 })
 
 wyrda.register_wand({
