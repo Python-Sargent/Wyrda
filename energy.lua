@@ -32,6 +32,10 @@ function wyrda.energy.get_max_energy(player)
 	return tonumber(get_player_attribute(player, "wyrda:max_energy"))
 end
 
+function wyrda.energy.get_energy_recharge(player)
+	return tonumber(get_player_attribute(player, "wyrda:recharge_energy"))
+end
+
 function wyrda.energy.set_energy(player, level)
 	set_player_attribute(player, "wyrda:energy", level)
 	player:hud_change(
@@ -44,6 +48,10 @@ end
 function wyrda.energy.set_max_energy(player, level)
 	set_player_attribute(player, "wyrda:max_energy", level)
 	wyrda.energy.set_energy(player, level)
+end
+
+function wyrda.energy.set_energy_recharge(player, level)
+	set_player_attribute(player, "wyrda:recharge_energy", level)
 end
 
 wyrda.energy.registered_on_update_energy = {}
@@ -119,14 +127,19 @@ function wyrda.energy.use_energy_player(player, change, cause)
 	wyrda.energy.set_use_energy(player, use_energy)
 end
 
-wyrda.energy_tick = function()
-	for _,player in ipairs(core.get_connected_players()) do
+wyrda.energy_tick = function(player)
+	--[[for _,player in ipairs(core.get_connected_players()) do
 		local energy = wyrda.energy.get_energy(player)
         local max_energy = wyrda.energy.get_max_energy(player) or 20
 		if energy < max_energy then
 			wyrda.energy.update_energy(player, energy + 1)
 		end
-	end
+	end]]
+    local energy = wyrda.energy.get_energy(player)
+    local max_energy = wyrda.energy.get_max_energy(player) or 20
+    if energy < max_energy then
+        wyrda.energy.update_energy(player, energy + 1)
+    end
 end
 
 local energy_timer = 0
@@ -134,9 +147,14 @@ local energy_timer = 0
 local energy_globaltimer = function(dtime)
 	energy_timer = energy_timer + dtime
 
-	if energy_timer > 1 then
-		energy_timer = 0
-		wyrda.energy_tick()
+    local recharge = 1
+
+    for _,player in ipairs(core.get_connected_players()) do
+		local recharge = wyrda.energy.get_energy_recharge(player) or 1
+        if energy_timer > recharge then
+            energy_timer = 0
+            wyrda.energy_tick(player)
+        end
 	end
 end
 
@@ -158,8 +176,8 @@ core.register_on_joinplayer(function(player)
 	set_hud_id(player, id)
 	wyrda.energy.set_energy(player, level)
     if not wyrda.energy.get_max_energy(player) then wyrda.energy.set_max_energy(player, level) end
+    if not wyrda.energy.get_energy_recharge(player) then wyrda.energy.set_energy_recharge(player, 1) end
 	set_player_attribute(player, "wyrda.energy:hud_id", nil)
-    core.log(tostring(wyrda.energy.get_max_energy(player)))
 end)
 
 core.register_on_leaveplayer(function(player)
