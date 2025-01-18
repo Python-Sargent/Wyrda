@@ -1,3 +1,33 @@
+local spell_particles = function(player, name)
+    core.add_particlespawner({
+        amount = 25,
+        time = 0.2,
+        vertical = false,
+        --texture = "wyrda_spell_" .. name .. ".png",
+        texture = {
+            name = "wyrda_spell_" .. name .. ".png",
+            alpha_tween = {1, 0},
+            scale = 3,
+            blend = "add",
+        },
+        --animation = {},
+        glow = 10,
+        --maxpos = {x = 0, y = 0, z = 0},
+        --minpos = {x = 0, y = 0, z = 0},
+        pos = {
+            min = vector.offset(player:get_pos(), 0.75, 1.75, 0.75),
+            max = vector.offset(player:get_pos(), -0.75, -0.75, -0.75),
+        },
+    })
+end
+
+-- repetim (grey)
+-- risier (lightblue)
+-- fiera (orange)
+-- disperim (purple)
+-- sanium (pink)
+-- expol (red)
+
 wyrda.register_spell("repetim", {
     name = "repetim",
     descname = "Repetim",
@@ -28,12 +58,14 @@ wyrda.register_spell("risier", {
         local yd = 0
         if y > 0 then yd = 15 - y else yd = 15 end
         player:add_velocity(vector.new(0, yd, 0))
+        spell_particles(player, "risier")
         if message == "" then return false end -- (ditto)
         return true
     end,
     func2 = function(player, message, pos)
         local vel = player:get_look_dir()
         player:add_velocity(vector.multiply(vel, 15))
+        spell_particles(player, "risier")
         if message == "" then return false end -- (ditto)
         return true
     end,
@@ -48,12 +80,14 @@ if core.get_modpath("fire") ~= nil then
         cooldown = 2,
         func = function(player, message, pos)
             core.set_node(pos, {name="fire:basic_flame"})
+            spell_particles(player, "fiera")
             if message == "" then return false end -- (ditto)
             return true
         end,
         func2 = function(player, message, pos)
             if core.get_node(vector.add(pos, player:get_look_dir())).name == "air" then
                 core.set_node(vector.add(pos, player:get_look_dir()), {name="fire:basic_flame"})
+                spell_particles(player, "rfiera")
             end
             if message == "" then return false end -- (ditto)
             return true
@@ -75,6 +109,7 @@ wyrda.register_spell("disperim", {
                 obj:add_velocity(vector.offset(vector.multiply(vector.direction(player:get_pos(), obj:get_pos()), 5), 0, 5, 0))
             end
         end
+        spell_particles(player, "disperim")
         if message == "" then return false end -- (ditto)
         return true
     end,
@@ -87,6 +122,7 @@ wyrda.register_spell("disperim", {
             end
         end
         player:add_velocity(vector.multiply(player:get_look_dir(), 10))
+        spell_particles(player, "disperim")
         if message == "" then return false end -- (ditto)
         return true
     end,
@@ -101,6 +137,7 @@ wyrda.register_spell("sanium", {
     func = function(player, message, pos)
         local hp = player:get_hp()
         player:set_hp(math.min(20, hp + 4))
+        spell_particles(player, "sanium")
         if message == "" then return false end -- (ditto)
         return true
     end,
@@ -113,6 +150,7 @@ wyrda.register_spell("sanium", {
                 obj:set_hp(obj:get_hp() - 2)
             end
         end
+        spell_particles(player, "sanium")
         if message == "" then return false end -- (ditto)
         return true
     end,
@@ -135,6 +173,7 @@ if core.get_modpath("tnt") ~= nil then
                 ignore_protection = false,
             })
             player:set_pos(pos)
+            spell_particles(player, "expol")
             if message == "" then return false end -- (ditto)
             return true
         end,
@@ -149,6 +188,7 @@ if core.get_modpath("tnt") ~= nil then
             })
             player:set_pos(pos)
             player:set_hp(player:get_hp() - 8)
+            spell_particles(player, "expol")
             if message == "" then return false end -- (ditto)
             return true
         end,
