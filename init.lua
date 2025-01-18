@@ -66,10 +66,16 @@ wyrda.cast = function(spell, player, message, pos, type)
     if spell == nil then return end
     if type == 1 then
         local has_energy = take_energy(spell, player)
-        if has_energy then return spell.func(player, message, pos) end
+        if has_energy then
+            core.sound_play("wyrda_cast_spell", {pos = player:get_pos(), gain = 1, pitch = 2, max_hear_distance = 32}, true)
+            return spell.func(player, message, pos)
+        end
     elseif type == 2 then
         local has_energy = take_energy(spell, player)
-        if has_energy then return spell.func2(player, message, pos) end
+        if has_energy then
+            core.sound_play("wyrda_cast_spell", {pos = player:get_pos(), gain = 1, max_hear_distance = 32}, true)
+            return spell.func2(player, message, pos)
+        end
     end
 end
 

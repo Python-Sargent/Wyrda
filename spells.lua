@@ -87,7 +87,7 @@ if core.get_modpath("fire") ~= nil then
         func2 = function(player, message, pos)
             if core.get_node(vector.add(pos, player:get_look_dir())).name == "air" then
                 core.set_node(vector.add(pos, player:get_look_dir()), {name="fire:basic_flame"})
-                spell_particles(player, "rfiera")
+                spell_particles(player, "fiera")
             end
             if message == "" then return false end -- (ditto)
             return true

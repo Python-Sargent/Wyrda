@@ -51,7 +51,7 @@ end
 wyrda.register_wand = function(params)
     core.register_craftitem(params.itemname, {
         description = params.name,
-        inventory_image = params.invimage,
+        inventory_image = params.invimage .. ".png^(" .. params.invimage .. "_overlay.png^[colorize:" .. params.color .. ":225)",
         stack_max = 1,
         groups = params.groups,
         on_place = wand_on_place(params),
@@ -63,6 +63,7 @@ end
 wyrda.register_wand({
     itemname = "wyrda:basic_wand",
     name = "Basic Wand",
-    invimage = "wyrda_basic_wand.png",
+    invimage = "wyrda_basic_wand",
     groups = {wand = 1},
+    color = "#FFF",
 })
