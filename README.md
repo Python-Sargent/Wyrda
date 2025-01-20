@@ -1,3 +1,6 @@
+![wyrda_screenshot](https://github.com/user-attachments/assets/d4aba802-a3b1-4e73-bb3c-ccf011904938)
+
+
 # Wyrda
 A spellcasting/magic mod for luanti.
 
