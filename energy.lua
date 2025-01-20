@@ -219,6 +219,5 @@ core.register_chatcommand("energy", {
                 "Recharge: " .. tostring(wyrda.energy.get_energy_recharge(core.get_player_by_name(name)))
             )
         end
-        core.log("/energy " .. tostring(params[1]) .. " " .. tostring(params[2]) .. " " .. tostring(params[3]))
     end,
 })
