@@ -203,15 +203,23 @@ core.register_chatcommand("energy", {
     privs = {},
     func = function(name, param)
         local params = param:split(" ")
+		local privs = core.check_player_privs(name, {server = true})
         if params[1] == "set" then
-            local val = params[3]
-            if params[2] == "energy" then
-                if val ~= nil then wyrda.energy.set_energy(core.get_player_by_name(name), val) end
-            elseif params[2] == "max_energy" then
-                if val ~= nil then wyrda.energy.set_max_energy(core.get_player_by_name(name), val) end
-            elseif params[2] == "recharge_energy" then
-                if val ~= nil then wyrda.energy.set_energy_recharge(core.get_player_by_name(name), val) end
-            end
+			if privs == true then
+				local val = params[3]
+				if params[2] == "energy" then
+					if val ~= nil then wyrda.energy.set_energy(core.get_player_by_name(name), val) end
+					core.chat_send_player(name, core.colorize("#0F4", "Modified attribute 'energy'"))
+				elseif params[2] == "max_energy" then
+					if val ~= nil then wyrda.energy.set_max_energy(core.get_player_by_name(name), val) end
+					core.chat_send_player(name, core.colorize("#0F4", "Modified attribute 'max_energy'"))
+				elseif params[2] == "recharge_energy" then
+					if val ~= nil then wyrda.energy.set_energy_recharge(core.get_player_by_name(name), val) end
+					core.chat_send_player(name, core.colorize("#0F4", "Modified attribute 'recharge_energy'"))
+				end
+			else
+				core.chat_send_player(name, core.colorize("#F40", "Denied: Missing required privs (server)"))
+			end
         elseif params[1] == "view" then
             core.chat_send_player(name,
                 "Energy: " .. tostring(wyrda.energy.get_energy(core.get_player_by_name(name))) .. " / " ..
