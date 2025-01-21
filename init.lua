@@ -54,10 +54,17 @@ end
 
 dofile(modpath .. "/energy.lua")
 
-local function take_energy(spell, player)
-    if wyrda.energy.get_energy(player) > spell.cost then
-        wyrda.energy.change_energy(player, -spell.cost)
-        return true
+local function take_energy(spell, player, type)
+    if type == 1 and spell.cost ~= nil then
+        if wyrda.energy.get_energy(player) > spell.cost then
+            wyrda.energy.change_energy(player, -spell.cost)
+            return true
+        end
+    elseif type == 2 and spell.cost2 ~= nil then
+        if wyrda.energy.get_energy(player) > spell.cost2 then
+            wyrda.energy.change_energy(player, -spell.cost2)
+            return true
+        end
     end
     return false
 end
@@ -65,13 +72,13 @@ end
 wyrda.cast = function(spell, player, message, pos, type)
     if spell == nil then return end
     if type == 1 then
-        local has_energy = take_energy(spell, player)
+        local has_energy = take_energy(spell, player, type)
         if has_energy then
             core.sound_play("wyrda_cast_spell", {pos = player:get_pos(), gain = 1, pitch = 2, max_hear_distance = 32}, true)
             return spell.func(player, message, pos)
         end
     elseif type == 2 then
-        local has_energy = take_energy(spell, player)
+        local has_energy = take_energy(spell, player, type)
         if has_energy then
             core.sound_play("wyrda_cast_spell", {pos = player:get_pos(), gain = 1, max_hear_distance = 32}, true)
             return spell.func2(player, message, pos)

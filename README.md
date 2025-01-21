@@ -42,7 +42,7 @@ These spells are stronger, and usually perform a seperate action, within the sam
 | Repetim           | Speak without revealing your name | none                                  |
 | Risier            | Rise into the air                 | Dash forward                          |
 | Fiera             | Set things on fire                | Summon an explosive Fireball          |
-| Disperim          | Disperse entities away from you   |                                       |
+| Disperim          | Disperse entities away from you   | Swap positions of entities            |
 | Sanium            | Heal your injuries (2HP)          | Summon a ring of Shields to guard you |
 | Expol             | Summon an explosive               |                                       |
 | (Empty)           | (does nothing)                    | (also does nothing)                   |

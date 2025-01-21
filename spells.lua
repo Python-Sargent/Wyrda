@@ -229,6 +229,7 @@ wyrda.register_spell("risier", {
     descname = "Risier",
     desc = "Cause yourself to rise",
     cost = 9,
+    cost2 = 12,
     cooldown = 6,
     func = function(player, message, pos)
         local vel = player:get_velocity()
@@ -255,6 +256,7 @@ if core.get_modpath("fire") ~= nil and core.get_modpath("tnt") ~= nil then
         descname = "Fiera",
         desc = "Burst into flames",
         cost = 5,
+        cost2 = 9,
         cooldown = 2,
         func = function(player, message, pos)
             if core.get_node(vector.add(player:get_pos(), player:get_look_dir())).name == "air" then
@@ -299,7 +301,8 @@ wyrda.register_spell("disperim", {
     name = "disperim",
     descname = "Disperim",
     desc = "Disperse nearby entities",
-    cost = 15,
+    cost = 10,
+    cost2 = 17,
     cooldown = 5,
     func = function(player, message, pos)
         if pos == nil then return false end
@@ -316,12 +319,18 @@ wyrda.register_spell("disperim", {
     func2 = function(player, message, pos)
         if pos == nil then return false end
         local objs = core.get_objects_inside_radius(player:get_pos(), 5)
+        local positions = {}
         for i, obj in pairs(objs) do
             if obj:get_player_name() ~= player:get_player_name() then
                 obj:add_velocity(vector.offset(vector.multiply(vector.direction(player:get_pos(), obj:get_pos()), 5), 0, 10, 0))
+                table.insert(positions, obj)
             end
         end
-        player:add_velocity(vector.multiply(player:get_look_dir(), 10))
+        for i, obj in pairs(positions) do
+            local pos = obj:get_pos()
+            obj:set_pos(player:get_pos())
+            player:set_pos(pos)
+        end
         spell_particles(player, "disperim")
         if message == "" then return false end -- (ditto)
         return true
@@ -333,6 +342,7 @@ wyrda.register_spell("sanium", {
     descname = "Sanium",
     desc = "Heal your injuries",
     cost = 9,
+    cost2 = 14,
     cooldown = 4,
     func = function(player, message, pos)
         local hp = player:get_hp()
@@ -371,7 +381,8 @@ if core.get_modpath("tnt") ~= nil then
         name = "expol",
         descname = "Expol",
         desc = "Emit a powerful explosion",
-        cost = 19,
+        cost = 14,
+        cost2 = 19,
         cooldown = 10,
         func = function(player, message, pos)
             local throw_starting_pos = vector.offset(player:get_pos(), 0, 1, 0)
@@ -423,6 +434,7 @@ wyrda.register_spell("empty", {
     descname = "Empty",
     desc = "Empty Spell (does nothing)",
     cost = 0,
+    cost2 = 0,
     cooldown = 0,
     func = function(player, message, pos)
         if message ~= nil and message ~= "" then core.chat_send_all(message) end
