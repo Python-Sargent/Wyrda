@@ -1,3 +1,10 @@
+if not core.settings:has("singularity_size") then
+    core.settings:set("singularity_size", 50)
+end
+if not core.settings:has("allow_singularities") then
+    core.settings:set("allow_singularities", true)
+end
+
 local spell_particles = function(player, name)
     core.add_particlespawner({
         amount = 25,
@@ -197,6 +204,162 @@ core.register_entity("wyrda:bomb", {
         end
     end,
     get_staticdata = function(self) end,
+})
+
+local function detach_nodes(pos, radius)
+	pos = vector.round(pos)
+	local voxel_manip1 = VoxelManip()
+	local pos1 = vector.subtract(pos, 2)
+	local pos2 = vector.add(pos, 2)
+	local minpos, maxpos = voxel_manip1:read_from_map(pos1, pos2)
+	local voxel_area = VoxelArea:new({MinEdge = minpos, MaxEdge = maxpos})
+	local data = voxel_manip1:get_data()
+	local c_air = core.CONTENT_AIR
+	local c_ignore = core.CONTENT_IGNORE
+
+	local voxel_manip = VoxelManip()
+    math.randomseed(os.time())
+	local pseudo_random = PseudoRandom(os.time())
+	pos1 = vector.subtract(pos, radius)
+	pos2 = vector.add(pos, radius)
+	minpos, maxpos = voxel_manip:read_from_map(pos1, pos2)
+	voxel_area = VoxelArea:new({MinEdge = minpos, MaxEdge = maxpos})
+	data = voxel_manip:get_data()
+
+    local nodes = {}
+	for z = -radius, radius do
+        for y = -radius, radius do
+            local vi = voxel_area:index(pos.x + (-radius), pos.y + y, pos.z + z)
+            for x = -radius, radius do
+                local radius2 = vector.length(vector.new(x, y, z))
+                if (radius * radius) / (radius2 * radius2) >= (pseudo_random:next(80, 125) / 100) then
+                    local content_id = data[vi]
+                    local position = {x = pos.x + x, y = pos.y + y, z = pos.z + z}
+                    if content_id ~= c_air and content_id ~= c_ignore then
+                        local rng = math.random(radius * (vector.distance(pos, position) * (vector.distance(pos, position) / 2)))
+                        if rng == 1 then
+                            local success, node = core.spawn_falling_node(position)
+                            if success then table.insert(nodes, node) data[vi] = c_air end
+                            --[[minetest.add_item(position, content_id)
+                            core.set_node(position, {name="air"})]]
+                        end
+                    end
+                end
+                vi = vi + 1
+            end
+        end
+	end
+
+	voxel_manip:set_data(data)
+	voxel_manip:write_to_map()
+	voxel_manip:update_map()
+	voxel_manip:update_liquids()
+
+    return nodes
+end
+
+local function consume(se, obj)
+    if obj:is_player() then
+        core.chat_send_all(obj:get_player_name() .. " was consumed by a singularity.")
+    end
+    se.size = math.min(se.size + 1, tonumber(core.settings:get("singularity_size")) or 50) -- consuming entities enlarges the singularity
+    local s = 0.5 + (se.size / 10) * 0.5
+    local new_properties = {
+        collisionbox = { -s, -s, -s, s, s, s },
+        selectionbox = { -s, -s, -s, s, s, s, rotate = true},
+    }
+    new_properties.visual_size = {x=se.size, y=se.size}
+    se.object:set_properties(new_properties)
+end
+
+core.register_entity("wyrda:black_hole", {
+    initial_properties = {
+        visual = "mesh",
+        mesh = "black_hole.obj",
+        hp_max = 1000,
+        physical = true,
+        collide_with_objects = false,
+        collisionbox = { -0.5, -0.5, -0.5, 0.5, 0.5, 0.5 },
+        selectionbox = { -0.5, -0.5, -0.5, 0.5, 0.5, 0.5, rotate = true},
+        pointable = true,
+        visual_size = {x = 10, y = 10, z = 10},
+        textures = {"wyrda_darkness.png"},
+        use_texture_alpha = false,
+        is_visible = true,
+        makes_footstep_sound = false,
+        glow = 0,
+        static_save = true,
+        shaded = false,
+        lifetime = 20,
+    },
+    player_name = "",
+    tick_timer = 0,
+    size = 10,
+    on_activate = function(self, staticdata, dtime_s) 
+        if not staticdata or not core.get_player_by_name(staticdata) then
+            self.object:remove()
+            return
+        end
+    
+        self.player_name = staticdata
+        self.tick_timer = 0
+        local player = core.get_player_by_name(staticdata)
+
+        core.after(self.initial_properties.lifetime, function() self.object:remove() end)
+    end,
+    on_deactivate = function(self, removal) end,
+    on_step = function(self, dtime, moveresult)
+        --self.object:set_velocity(vector.zero())
+        self.tick_timer = self.tick_timer + dtime
+        local objs = core.get_objects_inside_radius(self.object:get_pos(), self.size)
+        for i, obj in pairs(objs) do
+            if obj ~= self.object then
+                local dist = vector.distance(self.object:get_pos(), obj:get_pos())
+                obj:add_velocity(vector.offset(vector.multiply(vector.direction(self.object:get_pos(), obj:get_pos()), -1 / (dist / dist)), 0, 0.2, 0))
+            end
+        end
+        if self.tick_timer >= 0.5 then
+            for obj2 in core.objects_inside_radius(self.object:get_pos(), self.size / 10) do
+                if obj2 ~= self.object then
+                    local hp = obj2:get_hp()
+                    local dmg = 4
+                    if hp - dmg == 0 then
+                        consume(self, obj2)
+                    end
+                    if hp >= 1 then obj2:set_hp(math.max(hp - dmg, 0), self.object) end
+                end
+            end
+            --[[for i, node in pairs(nodes) do
+                local objs = core.get_objects_inside_radius(node:get_pos(), 1)
+                for i, obj in pairs(objs) do
+                    if obj ~= node then
+                        local le = obj:get_luaentity()
+                        if le ~= nil and le.name == "item" then
+                            obj:remove()
+                        end
+                    end
+                end
+            end]]
+            self.tick_timer = 0
+        end
+        local nodes = detach_nodes(self.object:get_pos(), math.min(self.size / 10, tonumber(core.settings:get("singularity_size")) or 50))
+        for obj in core.objects_inside_radius(self.object:get_pos(), self.size / 10) do
+            if obj ~= self.object then
+                local le = obj:get_luaentity()
+                if le ~= nil and le.name == "__builtin:falling_node" then
+                    consume(self, obj)
+                    return obj:remove()
+                end
+            end
+        end
+        for obj3 in core.objects_inside_radius(self.object:get_pos(), 1) do
+            if obj3 ~= self.object then
+                --obj3:set_pos(self.object:get_pos())
+            end
+        end
+    end,
+    get_staticdata = function(self) end,
+    on_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir, damage) end,
 })
 
 -- repetim (grey)
@@ -412,16 +575,35 @@ if core.get_modpath("tnt") ~= nil then
             return true
         end,
         func2 = function(player, message, pos)
-            local pos = player:get_pos()
-            player:set_pos(vector.offset(pos, 0, 100, 0))
-            tnt.boom(pos, {
-                radius = 2,
-                damage_radius = 6,
-                explode_center = true,
-                ignore_protection = false,
-            })
-            player:set_pos(pos)
-            player:set_hp(player:get_hp() - 8)
+            if core.settings:get("allow_singularities") == "true" then
+                local dir = vector.multiply(player:get_look_dir(), 5)
+                local start = vector.offset(player:get_pos(), dir.x, 0, dir.z)
+                local black_hole = core.add_entity(start, "wyrda:black_hole", player:get_player_name())
+            else
+                local throw_starting_pos = vector.offset(player:get_pos(), 0, 1, 0)
+                local bomb = core.add_entity(throw_starting_pos, "wyrda:bomb", player:get_player_name())
+                core.add_particlespawner({
+                    amount = 5000,
+                    time = 20,
+                    vertical = false,
+                    texture = {
+                        name = "wyrda_spell_expol_flame.png",
+                        alpha_tween = {1, 0},
+                        scale = 3,
+                        blend = "add",
+                    },
+                    --animation = {},
+                    glow = 10,
+                    --maxpos = {x = 0, y = 0, z = 0},
+                    --minpos = {x = 0, y = 0, z = 0},
+                    attached = bomb,
+                    pos = {
+                        min = vector.new(0.5, 0.5, 0.5),
+                        max = vector.new(-0.5, -0.5, -0.5),
+                    },
+                })
+            end
+
             spell_particles(player, "expol")
             if message == "" then return false end -- (ditto)
             return true
