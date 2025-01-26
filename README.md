@@ -45,10 +45,51 @@ These spells are stronger, and usually perform a seperate action, within the sam
 | Disperim          | Disperse entities away from you   | Swap positions of entities            |
 | Sanium            | Heal your injuries (2HP)          | Summon a ring of Shields to guard you |
 | Expol             | Summon an explosive               | Summon a Singularity (see settings)   |
+| Flurra            | Throw a freezing snowball         | Summon a field of icicles             |
 | (Empty)           | (does nothing)                    | (also does nothing)                   |
 
 There are no wands for the spell Repetim, as that spell requires a message to relay.
 And having a wand to relay a message which you never spoke is useless.
+
+#### Details
+
+More details on spells
+
+##### Repetim
+
+This spell when said will repeat everything said in that message (without the word 'repetim' that cast the spell)
+as a `core.chat_send_to_all()`.
+
+##### Risier
+
+Risier (Primary Spell) adds an upward velocity to your player. This velocity is equal to 15 and is maxed out at 15.
+If you have negative velocity (you are falling) the velocity will be subtracted, i.e. -5 + 15 which is 15 - 5.
+
+##### Fiera
+
+This spell's primary function is currently in progress, as it only works in certain situations.
+The secondary function spawns an explosive fireball which has a velocity following your look direction.
+
+##### Disperim
+
+The Primary function is to disperse or push entities away from you.
+The Secondary ability teleports you with another entitit, swapping positions.
+
+##### Sanium
+
+Primary function is to heal the user 4 health points, or 2 hearts.
+The special ability spawns a ring of 6 shields around you, which blocks incoming projectiles and possible direct damage.
+
+##### Expol
+
+The Primary summons an explosive ball which acts as if thrown, when it touches a node it immediately explodes dealing damage and removing terrain.
+The Secondary summons a singularity, which is configurable in the settings. The settings allow you to set the maximum size of the singularity
+or disable them altogether, when singularities are disabled the secondary function will perform a different explosive action, dealing damage.
+
+##### Flurra
+
+Allows you to throw snowballs that slow players down (Primary Function)
+And you can summon a minefield of icicles that inflict damage (1 hp per second) and slow the victim down.
 
 ### Energy
 
@@ -88,3 +129,17 @@ The `view` Sub Command will allow you to view your energy stats.
 It does not have any parameters and instead returns your energy stats in this format:
 
 `ENERGY / MAX_ENERGY : RECHARGE_RATE`
+
+### Crafting
+
+Currently, the crafting of items is fairly limited.
+The only craftable item is the Empty Spell Book (`wyrda:empty_spell_book`) and is craftable like this:
+
+P = paper
+B = book
+S = steel ingot
+G = gold ingot
+
+    G S G
+    P B P
+    G S G
