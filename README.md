@@ -135,10 +135,10 @@ It does not have any parameters and instead returns your energy stats in this fo
 Currently, the crafting of items is fairly limited.
 The only craftable item is the Empty Spell Book (`wyrda:empty_spell_book`) and is craftable like this:
 
-P = paper
-B = book
-S = steel ingot
-G = gold ingot
+P = paper, 
+B = book, 
+S = steel ingot, 
+G = gold ingot, 
 
     G S G
     P B P
