@@ -6,7 +6,7 @@ local colors = {
     ["sanium"] = "#F48",
     ["expol"] = "#F44",
     ["1"] = "#4F4", -- for spells later on
-    ["2"] = "#44F",
+    ["flurra"] = "#8AF",
     ["empty"] = "#FFF",
 }
 

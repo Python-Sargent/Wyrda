@@ -28,6 +28,207 @@ local spell_particles = function(player, name)
     })
 end
 
+local frozen_entities = {}
+
+local freeze_timer = 0
+
+core.register_globalstep(function(dtime)
+    freeze_timer = freeze_timer + dtime
+    for i, v in pairs(frozen_entities) do
+        if v then
+            local obj = core.get_player_by_name(i)
+            if v.timer == -1 then -- for init, '==' should prevent dtime lag from affecting
+                v.timer = 3
+                if obj ~= nil then obj:set_physics_override({ speed = 0.5, }) end
+                local snow_overlay = obj:hud_add({
+                    hud_elem_type = "image",
+                    position  = {x = 0, y = 0},
+                    offset    = {x = 0, y = 0},
+                    text      = "wyrda_snow_overlay.png",
+                    scale     = { x = 1, y = 1},
+                    alignment = { x = 1, y = 1 },
+                    z_index   = -400,
+                })
+                frozen_entities[i].hud_id = snow_overlay
+            elseif v.timer > 0 then
+                v.timer = v.timer - dtime
+                if freeze_timer >= 1 then
+                    obj:set_hp(obj:get_hp() - v.damage)
+                    freeze_timer = 0
+                end
+            elseif v.timer <= 0  then
+                if obj ~= nil then obj:set_physics_override({ speed = 1, }) end
+                if frozen_entities[i].hud_id ~= nil then
+                    obj:hud_remove(frozen_entities[i].hud_id)
+                end
+                frozen_entities[i] = nil
+            end
+        end
+    end
+end)
+
+core.register_entity("wyrda:snowball", {
+    initial_properties = {
+        visual = "mesh",
+        mesh = "snowball.obj",
+        hp_max = 10,
+        physical = true,
+        collide_with_objects = true,
+        collisionbox = { -0.25, -0.25, -0.25, 0.25, 0.25, 0.25 },
+        selectionbox = { -0.25, -0.25, -0.25, 0.25, 0.25, 0.25, rotate = false },
+        pointable = false,
+        visual_size = {x = 5, y = 5, z = 5},
+        textures = {"wyrda_snowball.png"},
+        use_texture_alpha = false,
+        is_visible = true,
+        makes_footstep_sound = false,
+        glow = 0,
+        static_save = true,
+        shaded = true,
+        speed = 30,
+        gravity = 10,
+        lifetime = 60,
+    },
+    player_name = "",
+    on_activate = function(self, staticdata, dtime_s)
+        if not staticdata or not core.get_player_by_name(staticdata) then
+            self.object:remove()
+            return
+        end
+        
+        self.player_name = staticdata
+        local player = core.get_player_by_name(staticdata)
+        local yaw = player:get_look_horizontal()
+        local pitch = player:get_look_vertical()
+        local dir = player:get_look_dir()
+    
+        self.object:set_rotation({x = -pitch, y = yaw, z = 0})
+        self.object:set_velocity({
+            x=(dir.x * self.initial_properties.speed),
+            y=(dir.y * self.initial_properties.speed),
+            z=(dir.z * self.initial_properties.speed),
+        })
+        self.object:set_acceleration({x=dir.x*-4, y=-self.initial_properties.gravity, z=dir.z*-4})
+    
+        core.after(self.initial_properties.lifetime, function() self.object:remove() end)
+    end,
+    on_deactivate = function(self, removal) end,
+    on_step = function(self, dtime, moveresult)
+        local collided_with_node = moveresult.collisions[1] and moveresult.collisions[1].type == "node"
+        local collided_with_entity = moveresult.collisions[1] and moveresult.collisions[1].type == "entity"
+
+        if collided_with_node or collided_with_entity then
+            local objs = core.get_objects_inside_radius(self.object:get_pos(), 4)
+            for i, obj in pairs(objs) do
+                if obj ~= self.object  and obj ~= core.get_player_by_name(self.player_name) then
+                    if obj:is_player() and obj:get_player_name() ~= self.player_name then 
+                        frozen_entities[obj:get_player_name()] = {
+                            obj = obj:get_player_name(), timer = -1, damage = 0, hud_id = nil}
+                    end
+                end
+            end
+
+            core.add_particlespawner({
+                amount = 300,
+                time = 0.1,
+                vertical = false,
+                texture = {
+                    name = "wyrda_spell_flurra_snow.png",
+                    alpha_tween = {1, 0},
+                    scale = 10,
+                    blend = "add",
+                },
+                glow = 0,
+                pos_tween = {
+                    style = "fwd",
+                    reps = 1,
+                    start = 0.0,
+                    { min = vector.offset(self.object:get_pos(),  0.25,  0.25,  0.25),
+                      max = vector.offset(self.object:get_pos(), -0.25, -0.25, -0.25), },
+                    { min = vector.offset(self.object:get_pos(),  0.5,  0.5,  0.5),
+                      max = vector.offset(self.object:get_pos(), -0.5, -0.25, -0.5), },
+                    { min = vector.offset(self.object:get_pos(),  1,  1,  1),
+                      max = vector.offset(self.object:get_pos(), -1, -0.25, -1), },
+                    { min = vector.offset(self.object:get_pos(),  1.5,  1.5,  1.5),
+                      max = vector.offset(self.object:get_pos(), -1.5, -0.25, -1.5), },
+                    { min = vector.offset(self.object:get_pos(),  2,  2,  2),
+                      max = vector.offset(self.object:get_pos(), -2, -0.25, -2), },
+                    { min = vector.offset(self.object:get_pos(),  2.5,  2.5,  2.5),
+                      max = vector.offset(self.object:get_pos(), -2.5, -0.25, -2.5), },
+                    { min = vector.offset(self.object:get_pos(),  3,  3,  3),
+                      max = vector.offset(self.object:get_pos(), -3, -0.25, -3), },
+                    { min = vector.offset(self.object:get_pos(),  3.5,  3.5,  3.5),
+                      max = vector.offset(self.object:get_pos(), -3.5, -0.25, -3.5), },
+                    { min = vector.offset(self.object:get_pos(),  4,  4,  4),
+                      max = vector.offset(self.object:get_pos(), -4, -0.25, -4), },
+                },
+            })
+            self.object:remove()
+        end
+    end,
+    get_staticdata = function(self) end,
+})
+
+core.register_entity("wyrda:icicle", {
+    initial_properties = {
+        visual = "mesh",
+        mesh = "icicle.obj",
+        hp_max = 20,
+        physical = true,
+        collide_with_objects = false,
+        collisionbox = { -0.125, -0.5, -0.125, 0.125, 0.5, 0.125 },
+        selectionbox = { -0.125, -0.5, -0.125, 0.125, 0.5, 0.125, rotate = true},
+        pointable = true,
+        visual_size = {x = 10, y = 10, z = 10},
+        textures = {"wyrda_icicle.png"},
+        use_texture_alpha = false,
+        is_visible = true,
+        makes_footstep_sound = false,
+        glow = 0,
+        static_save = true,
+        shaded = true,
+        lifetime = 20,
+    },
+    player_name = "",
+    --timer = 0,
+    on_activate = function(self, staticdata, dtime_s) 
+        if not staticdata or not core.get_player_by_name(staticdata) then
+            self.object:remove()
+            return
+        end
+    
+        self.player_name = staticdata
+        local player = core.get_player_by_name(staticdata)
+    
+        core.after(self.initial_properties.lifetime, function() self.object:remove() end)
+    end,
+    on_deactivate = function(self, removal) end,
+    on_step = function(self, dtime, moveresult)
+        --self.timer = self.timer + dtime
+        local objs = core.get_objects_inside_radius(self.object:get_pos(), 1)
+        --[[if self.timer >= 1 then
+            for i, obj in pairs(objs) do
+                if obj ~= self.object and obj:get_player_name() ~= self.player_name then
+                    if obj:is_player() then
+                        obj:set_hp(obj:get_hp() - 1, core.get_player_by_name(self.player_name))
+                    end
+                end
+            end
+            self.timer = 0
+        end]]
+        for i, obj in pairs(objs) do
+            if obj ~= self.object and obj ~= core.get_player_by_name(self.player_name) then
+                if obj:is_player() then
+                    if frozen_entities[obj:get_player_name()] == nil then frozen_entities[obj:get_player_name()] = {
+                        obj = obj:get_player_name(), timer = -1, damage = 1, hud_id = nil} end
+                end
+            end
+        end
+        -- obj:set_hp(obj:get_hp() - 1, core.get_player_by_name(self.player_name))
+    end,
+    get_staticdata = function(self) end,
+})
+
 core.register_entity("wyrda:shield", {
     initial_properties = {
         visual = "mesh",
@@ -290,7 +491,7 @@ core.register_entity("wyrda:black_hole", {
         glow = 0,
         static_save = true,
         shaded = false,
-        lifetime = 20,
+        lifetime = 15,
     },
     player_name = "",
     tick_timer = 0,
@@ -315,7 +516,9 @@ core.register_entity("wyrda:black_hole", {
         for i, obj in pairs(objs) do
             if obj ~= self.object then
                 local dist = vector.distance(self.object:get_pos(), obj:get_pos())
-                obj:add_velocity(vector.offset(vector.multiply(vector.direction(self.object:get_pos(), obj:get_pos()), -1 / (dist / dist)), 0, 0.2, 0))
+                if dist > 0.5 then
+                    obj:add_velocity(vector.offset(vector.multiply(vector.direction(self.object:get_pos(), obj:get_pos()), -1 / (dist / dist)), 0, 0.2, 0))
+                end
             end
         end
         if self.tick_timer >= 0.5 then
@@ -354,7 +557,11 @@ core.register_entity("wyrda:black_hole", {
         end
         for obj3 in core.objects_inside_radius(self.object:get_pos(), 1) do
             if obj3 ~= self.object then
-                --obj3:set_pos(self.object:get_pos())
+                local pos = self.object:get_pos()
+                if vector.check(pos) and pos.x ~= false then
+                    obj3:set_pos(self.object:get_pos())
+                    obj3:set_velocity(vector.new(0, 0, 0))
+                end
             end
         end
     end,
@@ -431,7 +638,7 @@ if core.get_modpath("fire") ~= nil and core.get_modpath("tnt") ~= nil then
             return true
         end,
         func2 = function(player, message, pos)
-            local throw_starting_pos = vector.offset(player:get_pos(), 0, 1, 0)
+            local throw_starting_pos = vector.offset(player:get_pos(), 0, 1.5, 0)
             local fireball = core.add_entity(throw_starting_pos, "wyrda:fireball", player:get_player_name())
             core.add_particlespawner({
                 amount = 10000,
@@ -548,7 +755,7 @@ if core.get_modpath("tnt") ~= nil then
         cost2 = 19,
         cooldown = 10,
         func = function(player, message, pos)
-            local throw_starting_pos = vector.offset(player:get_pos(), 0, 1, 0)
+            local throw_starting_pos = vector.offset(player:get_pos(), 0, 1.5, 0)
             local bomb = core.add_entity(throw_starting_pos, "wyrda:bomb", player:get_player_name())
             core.add_particlespawner({
                 amount = 5000,
@@ -610,6 +817,63 @@ if core.get_modpath("tnt") ~= nil then
         end,
     })
 end
+
+wyrda.register_spell("flurra", {
+    name = "flurra",
+    descname = "Flurra",
+    desc = "Freeze your enemies",
+    cost = 9,
+    cost2 = 12,
+    cooldown = 6,
+    func = function(player, message, pos)
+        -- snowball (damage, knockback, freezing)
+        local throw_starting_pos = vector.offset(player:get_pos(), 0, 1.5, 0)
+        local snowball = core.add_entity(throw_starting_pos, "wyrda:snowball", player:get_player_name())
+        core.add_particlespawner({
+            amount = 10000,
+            time = 60,
+            vertical = false,
+            texture = {
+                name = "wyrda_spell_flurra_snow.png",
+                alpha_tween = {1, 0},
+                scale = 3,
+                blend = "add",
+            },
+            --animation = {},
+            glow = 0,
+            --maxpos = {x = 0, y = 0, z = 0},
+            --minpos = {x = 0, y = 0, z = 0},
+            attached = bomb,
+            pos = {
+                min = vector.new(0.25, 0.25, 0.25),
+                max = vector.new(-0.25, -0.25, -0.25),
+            },
+        })
+        spell_particles(player, "flurra")
+        if message == "" then return false end -- (ditto)
+        return true
+    end,
+    func2 = function(player, message, pos)
+        -- icicle minefield (damage, freezing)
+        local pos = player:get_pos()
+        local positions = {}
+        local num_points = 30
+        local radius = 2
+        local inc = 2 * math.pi / num_points
+        for i in range{num_points} do
+            local dx = math.random(-10, 10) / 5
+            local dz = math.random(-10, 10) / 5
+            table.insert(positions, vector.offset(pos, dx, 0.5, dz))
+        end
+        local icicles = {}
+        for i, v in pairs(positions) do
+            icicles[i] = core.add_entity(v, "wyrda:icicle", player:get_player_name())
+        end
+        spell_particles(player, "flurra")
+        if message == "" then return false end -- (ditto)
+        return true
+    end,
+})
 
 wyrda.register_spell("empty", {
     name = "empty",

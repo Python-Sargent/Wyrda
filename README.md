@@ -44,7 +44,7 @@ These spells are stronger, and usually perform a seperate action, within the sam
 | Fiera             | Set things on fire                | Summon an explosive Fireball          |
 | Disperim          | Disperse entities away from you   | Swap positions of entities            |
 | Sanium            | Heal your injuries (2HP)          | Summon a ring of Shields to guard you |
-| Expol             | Summon an explosive               |                                       |
+| Expol             | Summon an explosive               | Summon a Singularity (see settings)   |
 | (Empty)           | (does nothing)                    | (also does nothing)                   |
 
 There are no wands for the spell Repetim, as that spell requires a message to relay.

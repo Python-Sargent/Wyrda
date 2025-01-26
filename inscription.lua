@@ -54,6 +54,13 @@ wyrda.register_inscription_recipe({
     result = "wyrda:basic_expol_wand",
 })
 
+wyrda.register_inscription_recipe({
+    name = "basic_flurra_wand",
+    script = "wyrda:flurra_spell_book",
+    inscript = "wyrda:basic_wand",
+    result = "wyrda:basic_flurra_wand",
+})
+
 wyrda.inscription_recipe = function(script, inscript)
     local result
     for i, v in pairs(wyrda.inscription_recipes) do
