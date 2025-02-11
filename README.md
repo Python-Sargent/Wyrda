@@ -1,6 +1,5 @@
 ![wyrda_screenshot](https://github.com/user-attachments/assets/d4aba802-a3b1-4e73-bb3c-ccf011904938)
 
-
 # Wyrda
 A spellcasting/magic mod for luanti.
 
@@ -46,6 +45,8 @@ These spells are stronger, and usually perform a seperate action, within the sam
 | Sanium            | Heal your injuries (2HP)          | Summon a ring of Shields to guard you |
 | Expol             | Summon an explosive               | Summon a Singularity (see settings)   |
 | Flurra            | Throw a freezing snowball         | Summon a field of icicles             |
+| Fulst             | Summon a focused lightning bolt   | Summon a ball of lightning            |
+| Hazum             |                                   |                                       |
 | (Empty)           | (does nothing)                    | (also does nothing)                   |
 
 There are no wands for the spell Repetim, as that spell requires a message to relay.
@@ -90,6 +91,15 @@ or disable them altogether, when singularities are disabled the secondary functi
 
 Allows you to throw snowballs that slow players down (Primary Function)
 And you can summon a minefield of icicles that inflict damage (1 hp per second) and slow the victim down.
+
+##### Fulst
+
+This spell can summon a focused bolt of lightning where you are looking, which does damage.
+And it can also for the secondary ability summon a ball of lightning, which acts as a trap, when an object get's close the ball will strike the object with a bolt of lighting.
+
+##### Hazum
+
+Toxic
 
 ### Energy
 

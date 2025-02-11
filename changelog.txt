@@ -1,0 +1,37 @@
+As outlined by commit history:
+
+    For the Month of January:
+
+        Jan 7, 2025: Initial commit
+
+        Jan 9, 2025: init
+
+        Jan 15, 2025: wands_and_inscription_initial
+
+        Jan 16, 2025: inscription
+                      add_expol_spell
+                      energy
+
+        Jan 17, 2025: max_energy
+                      recharge_energy
+                      auto_gen
+                      particles
+
+        Jan 18, 2025: sounds_and_visual
+
+        Jan 20, 2025: add_models_edit_readme
+                      Update README.md
+                      shield_summoning
+                      secondary_energy_costs
+                      fix_energy_chatcommand_privs
+
+        Jan 22, 2025: add_singularities
+
+        Jan 26, 2025: crafting_and_flurra_spell
+                      update_readme
+                      update_readme
+
+As recorded manually:
+
+    Jan 30, 2025: Added Fulst and Hazum spells
+

@@ -19,48 +19,6 @@ wyrda.register_inscription_recipe = function(def)
     }
 end
 
-wyrda.register_inscription_recipe({
-    name = "basic_risier_wand",
-    script = "wyrda:risier_spell_book",
-    inscript = "wyrda:basic_wand",
-    result = "wyrda:basic_risier_wand",
-})
-
-wyrda.register_inscription_recipe({
-    name = "basic_fiera_wand",
-    script = "wyrda:fiera_spell_book",
-    inscript = "wyrda:basic_wand",
-    result = "wyrda:basic_fiera_wand",
-})
-
-wyrda.register_inscription_recipe({
-    name = "basic_disperim_wand",
-    script = "wyrda:disperim_spell_book",
-    inscript = "wyrda:basic_wand",
-    result = "wyrda:basic_disperim_wand",
-})
-
-wyrda.register_inscription_recipe({
-    name = "basic_sanium_wand",
-    script = "wyrda:sanium_spell_book",
-    inscript = "wyrda:basic_wand",
-    result = "wyrda:basic_sanium_wand",
-})
-
-wyrda.register_inscription_recipe({
-    name = "basic_expol_wand",
-    script = "wyrda:expol_spell_book",
-    inscript = "wyrda:basic_wand",
-    result = "wyrda:basic_expol_wand",
-})
-
-wyrda.register_inscription_recipe({
-    name = "basic_flurra_wand",
-    script = "wyrda:flurra_spell_book",
-    inscript = "wyrda:basic_wand",
-    result = "wyrda:basic_flurra_wand",
-})
-
 wyrda.inscription_recipe = function(script, inscript)
     local result
     for i, v in pairs(wyrda.inscription_recipes) do

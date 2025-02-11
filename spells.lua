@@ -2,7 +2,7 @@ if not core.settings:has("singularity_size") then
     core.settings:set("singularity_size", 50)
 end
 if not core.settings:has("allow_singularities") then
-    core.settings:set("allow_singularities", true)
+    core.settings:set("allow_singularities", "false") --singularities are special, default is nuke
 end
 
 local spell_particles = function(player, name)
@@ -115,7 +115,7 @@ core.register_entity("wyrda:snowball", {
     on_deactivate = function(self, removal) end,
     on_step = function(self, dtime, moveresult)
         local collided_with_node = moveresult.collisions[1] and moveresult.collisions[1].type == "node"
-        local collided_with_entity = moveresult.collisions[1] and moveresult.collisions[1].type == "entity"
+        local collided_with_entity = moveresult.collisions[1] and moveresult.collisions[1].type == "object"
 
         if collided_with_node or collided_with_entity then
             local objs = core.get_objects_inside_radius(self.object:get_pos(), 4)
@@ -338,7 +338,7 @@ core.register_entity("wyrda:fireball", {
     on_deactivate = function(self, removal) end,
     on_step = function(self, dtime, moveresult)
         local collided_with_node = moveresult.collisions[1] and moveresult.collisions[1].type == "node"
-        local collided_with_entity = moveresult.collisions[1] and moveresult.collisions[1].type == "entity"
+        local collided_with_entity = moveresult.collisions[1] and moveresult.collisions[1].type == "object"
 
         if collided_with_node or collided_with_entity then
             
@@ -396,11 +396,11 @@ core.register_entity("wyrda:bomb", {
     on_deactivate = function(self, removal) end,
     on_step = function(self, dtime, moveresult)
         local collided_with_node = moveresult.collisions[1] and moveresult.collisions[1].type == "node"
-        local collided_with_entity = moveresult.collisions[1] and moveresult.collisions[1].type == "entity"
+        local collided_with_entity = moveresult.collisions[1] and moveresult.collisions[1].type == "object"
 
         if collided_with_node or collided_with_entity then
-            
-            if core.get_modpath("tnt") then tnt.boom(moveresult.collisions[1].node_pos, {radius = 5, damage_radius = 2}) end
+            local pos = moveresult.collisions[1].node_pos or moveresult.collisions[1].object:get_pos()
+            if core.get_modpath("tnt") then tnt.boom(pos, {radius = 2, damage_radius = 2}) end
             self.object:remove()
         end
     end,
@@ -569,12 +569,210 @@ core.register_entity("wyrda:black_hole", {
     on_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir, damage) end,
 })
 
--- repetim (grey)
--- risier (lightblue)
--- fiera (orange)
--- disperim (purple)
--- sanium (pink)
--- expol (red)
+wyrda.plot_line = function(pos1, pos2)
+    core.add_particlespawner({
+        amount = 10000,
+        time = 1,
+        texture = {
+            name = "wyrda_square.png",
+            scale = 1,
+        },
+        pos = {
+            min = pos1,
+            max = pos2,
+        },
+    })
+    core.add_particlespawner({
+        amount = 100,
+        time = 1,
+        texture = {
+            name = "wyrda_square_red.png",
+            scale = 1,
+        },
+        pos = {
+            min = vector.offset(pos1, 0.1, 0.1, 0.1),
+            max = vector.offset(pos1, -0.1, -0.1, -0.1),
+        },
+    })
+    core.add_particlespawner({
+        amount = 100,
+        time = 1,
+        texture = {
+            name = "wyrda_square_blue.png",
+            scale = 1,
+        },
+        pos = {
+            min = vector.offset(pos2, 0.1, 0.1, 0.1),
+            max = vector.offset(pos2, -0.1, -0.1, -0.1),
+        },
+    })
+end
+
+core.register_entity("wyrda:lightning", {
+    initial_properties = {
+        visual = "mesh",
+        mesh = "lightning.obj",
+        hp_max = 20,
+        physical = false,
+        collide_with_objects = false,
+        collisionbox = { -0, -0, -0, 0, 0, 0 },
+        selectionbox = { -0, -0, -0, 0, 0, 0 },
+        pointable = false,
+        visual_size = {x = 10, y = 10, z = 10},
+        textures = {
+            "wyrda_lightning.png",
+        },
+        use_texture_alpha = true,
+        is_visible = true,
+        makes_footstep_sound = false,
+        glow = 14,
+        backface_culling = false,
+        static_save = false,
+        shaded = true,
+        lifetime = 1,
+    },
+    player_name = "",
+    timer = 1.1, -- to force it to damage on the first step
+    on_activate = function(self, staticdata, dtime_s) 
+        if not staticdata then
+            self.object:remove()
+            return
+        end
+    
+        if staticdata ~= "" and not vector.check(core.string_to_pos(staticdata)) and core.get_player_by_name(staticdata) then
+            self.player_name = staticdata
+            local player = core.get_player_by_name(staticdata)
+            local yaw = player:get_look_horizontal()
+            local pitch = player:get_look_vertical()
+            local dir = player:get_look_dir()
+
+            self.object:set_pos((vector.add(self.object:get_pos(), vector.multiply(dir, 5))))
+        
+            self.object:set_rotation({x = -pitch, y = yaw, z = 0})
+        elseif vector.check(core.string_to_pos(staticdata)) then
+            local stp = core.string_to_pos(staticdata)
+            local pitch = stp.x
+            local yaw = stp.y
+            self.object:set_rotation({x = -pitch, y = yaw, z = 0})
+        end
+    
+        core.after(self.initial_properties.lifetime, function() self.object:remove() end)
+    end,
+    on_deactivate = function(self, removal) end,
+    on_step = function(self, dtime, moveresult)
+        self.timer = self.timer + dtime
+        local r = self.object:get_rotation()
+        local y = self.object:get_yaw()
+        local rot = vector.new(r.x, y, r.z)
+        local pos1 = vector.new(
+            self.object:get_pos().x + math.cos(rot.x) * 5,
+            self.object:get_pos().y + math.sin(rot.y) * 5,
+            self.object:get_pos().z + math.cos(rot.z) * 5)
+        local pos2 = vector.new(
+            self.object:get_pos().x - math.cos(rot.x) * 5,
+            self.object:get_pos().y - math.sin(rot.y) * 5,
+            self.object:get_pos().z - math.cos(rot.z) * 5)
+        if self.timer >= 1 then
+            local ray = core.raycast(pos1, pos2, true, false)
+            for pointed_thing in ray do
+                if pointed_thing and pointed_thing.type == "object" then
+                    local obj = pointed_thing.ref
+                    if obj ~= self.object then -- and obj:get_player_name() ~= self.player_name
+                        obj:set_hp(obj:get_hp() - 4)
+                    end
+                end
+            end
+            wyrda.plot_line(pos1, pos2)
+            self.timer = 0
+        end
+    end,
+    get_staticdata = function(self) end,
+})
+
+core.register_entity("wyrda:ball_lightning", {
+    initial_properties = {
+        visual = "mesh",
+        mesh = "ball_lightning.obj",
+        hp_max = 10,
+        physical = true,
+        collide_with_objects = false,
+        collisionbox = { -0.5, -0.5, -0.5, 0.5, 0.5, 0.5 },
+        selectionbox = { -0.5, -0.5, -0.5, 0.5, 0.5, 0.5 },
+        pointable = false,
+        visual_size = {x = 10, y = 10, z = 10},
+        textures = {"wyrda_ball_lightning.png"},
+        use_texture_alpha = true,
+        backface_culling = false,
+        is_visible = true,
+        makes_footstep_sound = false,
+        glow = 14,
+        static_save = true,
+        shaded = false,
+        speed = 0,
+        lifetime = 60,
+    },
+    player_name = "",
+    timer = 0,
+    on_activate = function(self, staticdata, dtime_s)
+        if not staticdata or not core.get_player_by_name(staticdata) then
+            self.object:remove()
+            return
+        end
+    
+        self.player_name = staticdata
+        local player = core.get_player_by_name(staticdata)
+        local yaw = player:get_look_horizontal()
+        local pitch = player:get_look_vertical()
+        local dir = player:get_look_dir()
+    
+        self.object:set_rotation({x = -pitch, y = yaw, z = 0})
+        self.object:set_velocity({
+            x=(dir.x * self.initial_properties.speed),
+            y=(dir.y * self.initial_properties.speed),
+            z=(dir.z * self.initial_properties.speed),
+        })
+        --self.object:set_acceleration({x=dir.x*-4, y=0, z=dir.z*-4})
+    
+        core.after(self.initial_properties.lifetime, function() self.object:remove() end)
+    end,
+    on_deactivate = function(self, removal) end,
+    on_step = function(self, dtime, moveresult)
+        self.timer = self.timer + dtime
+        if self.timer >= 1 then
+            for obj in core.objects_inside_radius(self.object:get_pos(), 5) do
+                if obj ~= self.object then
+                    local rot = self.object:get_rotation()
+                    local yaw = self.object:get_yaw()
+                    local dir = vector.rotate(self.object:get_pos(), vector.new(rot.x, yaw, rot.z))
+                    local starting_pos = self.object:get_pos()
+                    local lightning = core.add_entity(starting_pos, "wyrda:lightning", core.pos_to_string(vector.new(rot.x, yaw, rot.z)))
+                    core.add_particlespawner({
+                        amount = 100,
+                        time = 1,
+                        vertical = false,
+                        texture = {
+                            name = "wyrda_spell_fulst_sparks.png",
+                            alpha_tween = {1, 0},
+                            scale = 3,
+                            blend = "add",
+                        },
+                        glow =14,
+                        attached = lightning,
+                        pos = {
+                            min = vector.new(0.25, 0.25, 5),
+                            max = vector.new(-0.25, -0.25, -5),
+                        },
+                    })
+                    --obj:set_hp(obj:get_hp() - 2)
+                end
+            end
+            self.timer = 0
+        end
+    end,
+    get_staticdata = function(self) end,
+})
+
+-- Spells
 
 wyrda.register_spell("repetim", {
     name = "repetim",
@@ -787,30 +985,8 @@ if core.get_modpath("tnt") ~= nil then
                 local start = vector.offset(player:get_pos(), dir.x, 0, dir.z)
                 local black_hole = core.add_entity(start, "wyrda:black_hole", player:get_player_name())
             else
-                local throw_starting_pos = vector.offset(player:get_pos(), 0, 1, 0)
-                local bomb = core.add_entity(throw_starting_pos, "wyrda:bomb", player:get_player_name())
-                core.add_particlespawner({
-                    amount = 5000,
-                    time = 20,
-                    vertical = false,
-                    texture = {
-                        name = "wyrda_spell_expol_flame.png",
-                        alpha_tween = {1, 0},
-                        scale = 3,
-                        blend = "add",
-                    },
-                    --animation = {},
-                    glow = 10,
-                    --maxpos = {x = 0, y = 0, z = 0},
-                    --minpos = {x = 0, y = 0, z = 0},
-                    attached = bomb,
-                    pos = {
-                        min = vector.new(0.5, 0.5, 0.5),
-                        max = vector.new(-0.5, -0.5, -0.5),
-                    },
-                })
+                -- nuke
             end
-
             spell_particles(player, "expol")
             if message == "" then return false end -- (ditto)
             return true
@@ -843,7 +1019,7 @@ wyrda.register_spell("flurra", {
             glow = 0,
             --maxpos = {x = 0, y = 0, z = 0},
             --minpos = {x = 0, y = 0, z = 0},
-            attached = bomb,
+            attached = snowball,
             pos = {
                 min = vector.new(0.25, 0.25, 0.25),
                 max = vector.new(-0.25, -0.25, -0.25),
@@ -874,6 +1050,101 @@ wyrda.register_spell("flurra", {
         return true
     end,
 })
+
+--[[wyrda.register_spell("fulst", {
+    name = "fulst",
+    descname = "Fulst",
+    desc = "Spark with electric power",
+    cost = 12,
+    cost2 = 14,
+    cooldown = 6,
+    func = function(player, message, pos)
+        -- focused storm (lightning bolt)
+        local starting_pos = vector.offset(player:get_pos(), 0, 1.5, 0)
+        local lightning = core.add_entity(starting_pos, "wyrda:lightning", player:get_player_name())
+        core.add_particlespawner({
+            amount = 100,
+            time = 1,
+            vertical = false,
+            texture = {
+                name = "wyrda_spell_fulst_sparks.png",
+                alpha_tween = {1, 0},
+                scale = 3,
+                blend = "add",
+            },
+            --animation = {},
+            glow =14,
+            --maxpos = {x = 0, y = 0, z = 0},
+            --minpos = {x = 0, y = 0, z = 0},
+            attached = lightning,
+            pos = {
+                min = vector.new(0.25, 0.25, 5),
+                max = vector.new(-0.25, -0.25, -5),
+            },
+        })
+        spell_particles(player, "fulst")
+        if message == "" then return false end -- (ditto)
+        return true
+    end,
+    func2 = function(player, message, pos)
+        -- ball lightning (spark grenade)
+        local throw_starting_pos = vector.offset(player:get_pos(), 0, 1.5, 0)
+        local ball_lightning = core.add_entity(throw_starting_pos, "wyrda:ball_lightning", player:get_player_name())
+        core.add_particlespawner({
+            amount = 600,
+            time = 60,
+            vertical = false,
+            texture = {
+                name = "wyrda_spell_fulst_sparks.png",
+                alpha_tween = {1, 0},
+                scale = 3,
+                blend = "add",
+            },
+            --animation = {},
+            glow = 14,
+            --maxpos = {x = 0, y = 0, z = 0},
+            --minpos = {x = 0, y = 0, z = 0},
+            attached = ball_lightning,
+            pos_tween = {
+                style = "fwd",
+                reps = 1,
+                start = 0.0,
+                { min = vector.new(0.25,  0.25,  0.25),
+                  max = vector.new(-0.25,  -0.25,  -0.25), },
+                { min = vector.new(0.35,  0.35,  0.35),
+                  max = vector.new(-0.35,  -0.35,  -0.35), },
+                { min = vector.new(0.45,  0.45,  0.45),
+                  max = vector.new(-0.45,  -0.45,  -0.45), },
+                { min = vector.new(0.5,  0.5,  0.5),
+                  max = vector.new(-0.5,  -0.5,  -0.5), },
+            },
+        })
+        spell_particles(player, "fulst")
+        if message == "" then return false end -- (ditto)
+        return true
+    end,
+})
+
+wyrda.register_spell("hazum", {
+    name = "hazum",
+    descname = "Hazum",
+    desc = "Biohazardous",
+    cost = 12,
+    cost2 = 14,
+    cooldown = 6,
+    func = function(player, message, pos)
+        -- 
+        spell_particles(player, "hazum")
+        if message == "" then return false end -- (ditto)
+        return true
+    end,
+    func2 = function(player, message, pos)
+        -- 
+        spell_particles(player, "hazum")
+        if message == "" then return false end -- (ditto)
+        return true
+    end,
+})]]
 
 wyrda.register_spell("empty", {
     name = "empty",

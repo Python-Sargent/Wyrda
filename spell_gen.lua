@@ -5,8 +5,9 @@ local colors = {
     ["disperim"] = "#84F",
     ["sanium"] = "#F48",
     ["expol"] = "#F44",
-    ["1"] = "#4F4", -- for spells later on
+    ["hazum"] = "#Af0",
     ["flurra"] = "#8AF",
+    ["fulst"] = "#FB4",
     ["empty"] = "#FFF",
 }
 
@@ -26,90 +27,11 @@ for i, spell in pairs(wyrda.spells) do
         spellname = spell.name,
         color = colors[spell.name],
     })
+
+    wyrda.register_inscription_recipe({
+        name = "basic_" .. spell.name .. "_wand",
+        script = "wyrda:" .. spell.name .. "_spell_book",
+        inscript = "wyrda:basic_wand",
+        result = "wyrda:basic_" .. spell.name .. "_wand",
+    })
 end
-
---[[
--- WANDS    
-
-wyrda.register_wand({
-    itemname = "wyrda:basic_risier_wand",
-    name = "Basic Wand (Risier)\n" .. core.colorize("#AFA", wyrda.spells["risier"].desc),
-    invimage = "wyrda_basic_wand.png",
-    spellname = "risier",
-    groups = {wand = 1, not_in_creative_inventory = 1},
-    cooldown = 6,
-})
-
-wyrda.register_wand({
-    itemname = "wyrda:basic_fiera_wand",
-    name = "Basic Wand (Fiera)\n" .. core.colorize("#AFA", wyrda.spells["fiera"].desc),
-    invimage = "wyrda_basic_wand.png",
-    spellname = "fiera",
-    groups = {wand = 1, not_in_creative_inventory = 1},
-    cooldown = 2,
-})
-
-wyrda.register_wand({
-    itemname = "wyrda:basic_disperim_wand",
-    name = "Basic Wand (Disperim)\n" .. core.colorize("#AFA", wyrda.spells["disperim"].desc),
-    invimage = "wyrda_basic_wand.png",
-    spellname = "disperim",
-    groups = {wand = 1, not_in_creative_inventory = 1},
-    cooldown = 5,
-})
-
-wyrda.register_wand({
-    itemname = "wyrda:basic_sanium_wand",
-    name = "Basic Wand (Sanium)\n" .. core.colorize("#AFA", wyrda.spells["sanium"].desc),
-    invimage = "wyrda_basic_wand.png",
-    spellname = "sanium",
-    groups = {wand = 1, not_in_creative_inventory = 1},
-    cooldown = 4,
-})
-
-wyrda.register_wand({
-    itemname = "wyrda:basic_expol_wand",
-    name = "Basic Wand (Expol)\n" .. core.colorize("#AFA", wyrda.spells["expol"].desc),
-    invimage = "wyrda_basic_wand.png",
-    spellname = "expol",
-    groups = {wand = 1, not_in_creative_inventory = 1},
-    cooldown = 10,
-
--- BOOKS
-
-wyrda.register_book({
-    bookname = "Repetim",
-    spellname = "repetim",
-    color = "#888",
-})
-
-wyrda.register_book({
-    bookname = "Risier",
-    spellname = "risier",
-    color = "#48F",
-})
-
-wyrda.register_book({
-    bookname = "Fiera",
-    spellname = "fiera",
-    color = "#F84",
-})
-
-wyrda.register_book({
-    bookname = "Dispersion",
-    spellname = "disperim",
-    color = "#84F",
-})
-
-wyrda.register_book({
-    bookname = "Sanium",
-    spellname = "sanium",
-    color = "#F48",
-})
-
-wyrda.register_book({
-    bookname = "Expol",
-    spellname = "expol",
-    color = "#F44",
-})
-})]]
