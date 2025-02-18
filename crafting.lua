@@ -1,13 +1,11 @@
 core.register_craftitem("wyrda:basic_wand_staff", {
     description = "Basic Wand Staff",
     inventory_image = "wyrda_basic_staff.png",
-    groups = {},
 })
 
 core.register_craftitem("wyrda:basic_gemstone", {
     description = "Basic Gemstone",
     inventory_image = "wyrda_basic_gemstone.png",
-    groups = {},
 })
 
 --[[
@@ -71,20 +69,6 @@ core.register_craftitem("wyrda:hardened_wand_staff", {
     inventory_image = "wyrda_hardened_staff.png",
     groups = {},
 })
-
-core.register_craftitem("wyrda:basic_wand_staff", {
-    description = "Basic Wand Staff",
-    inventory_image = "wyrda_basic_staff.png",
-    groups = {},
-})
-
-core.register_craftitem("wyrda:basic_wand_staff", {
-    description = "Basic Wand Staff",
-    inventory_image = "wyrda_basic_staff.png",
-    groups = {},
-})
-
-
 ]] -- just some stuff that I might add sometime
 
 if core.get_modpath("default") ~= nil then

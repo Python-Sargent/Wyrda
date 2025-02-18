@@ -15,7 +15,7 @@ local spell_particles = function(player, name)
             name = "wyrda_spell_" .. name .. ".png",
             alpha_tween = {1, 0},
             scale = 3,
-            blend = "add",
+            blend = "screen",
         },
         --animation = {},
         glow = 10,
@@ -62,6 +62,45 @@ core.register_globalstep(function(dtime)
                     obj:hud_remove(frozen_entities[i].hud_id)
                 end
                 frozen_entities[i] = nil
+            end
+        end
+    end
+end)
+
+local electrified_entities = {}
+
+local electrified_timer = 0
+
+core.register_globalstep(function(dtime)
+    electrified_timer = electrified_timer + dtime
+    for i, v in pairs(electrified_entities) do
+        if v then
+            local obj = core.get_player_by_name(i)
+            if v.timer == -1 then -- for init, '==' should prevent dtime lag from affecting
+                v.timer = 3
+                if obj ~= nil then obj:set_physics_override({ speed = 0.5, }) end
+                local snow_overlay = obj:hud_add({
+                    hud_elem_type = "image",
+                    position  = {x = 0, y = 0},
+                    offset    = {x = 0, y = 0},
+                    text      = "wyrda_electric_overlay.png",
+                    scale     = { x = 1, y = 1},
+                    alignment = { x = 1, y = 1 },
+                    z_index   = -400,
+                })
+                electrified_entities[i].hud_id = snow_overlay
+            elseif v.timer > 0 then
+                v.timer = v.timer - dtime
+                if electrified_timer >= 1 then
+                    obj:set_hp(obj:get_hp() - v.damage)
+                    electrified_timer = 0
+                end
+            elseif v.timer <= 0  then
+                if obj ~= nil then obj:set_physics_override({ speed = 1, }) end
+                if electrified_entities[i].hud_id ~= nil then
+                    obj:hud_remove(electrified_entities[i].hud_id)
+                end
+                electrified_entities[i] = nil
             end
         end
     end
@@ -136,7 +175,7 @@ core.register_entity("wyrda:snowball", {
                     name = "wyrda_spell_flurra_snow.png",
                     alpha_tween = {1, 0},
                     scale = 10,
-                    blend = "add",
+                    blend = "screen",
                 },
                 glow = 0,
                 pos_tween = {
@@ -276,7 +315,7 @@ core.register_entity("wyrda:shield", {
                 name = "wyrda_spell_sanium_block.png",
                 alpha_tween = {1, 0},
                 scale = 10,
-                blend = "add",
+                blend = "screen",
             },
             --animation = {},
             glow = 0,
@@ -608,7 +647,7 @@ wyrda.plot_line = function(pos1, pos2)
     })
 end
 
-core.register_entity("wyrda:lightning", {
+--[[core.register_entity("wyrda:lightning", {
     initial_properties = {
         visual = "mesh",
         mesh = "lightning.obj",
@@ -685,9 +724,74 @@ core.register_entity("wyrda:lightning", {
             wyrda.plot_line(pos1, pos2)
             self.timer = 0
         end
+        local ray = core.raycast(pos1, pos2, true, false)
+        for pointed_thing in ray do
+            if pointed_thing and pointed_thing.type == "object" then
+                local obj = pointed_thing.ref
+                if obj ~= self.object then -- and obj:get_player_name() ~= self.player_name
+                    if electrified_entities[obj:get_player_name()] == nil then
+                        electrified_entities[obj:get_player_name()] = {
+                        obj = obj:get_player_name(), timer = -1, damage = 0, hud_id = nil}
+                    end
+                end
+            end
+        end
+        wyrda.plot_line(pos1, pos2)
+        self.timer = 0
     end,
     get_staticdata = function(self) end,
 })
+
+-- Function to create a rotation matrix from Euler angles (in radians)
+local function rotationMatrix(pos)
+    local cosX = math.cos(pos.x)
+    local sinX = math.sin(pos.x)
+    local cosY = math.cos(pos.y)
+    local sinY = math.sin(pos.y)
+    local cosZ = math.cos(pos.z)
+    local sinZ = math.sin(pos.z)
+
+    local matrix = {
+        {cosY * cosZ, cosX * sinZ + sinX * sinY * cosZ, sinX * sinZ - cosX * sinY * cosZ},
+        {-cosY * sinZ, cosX * cosZ - sinX * sinY * sinZ, sinX * cosZ + cosX * sinY * sinZ},
+        {sinY, -sinX * cosY, cosX * cosY}
+    }
+    return matrix
+end
+
+-- Function to multiply a matrix and a vector
+local function matrixVectorMultiply(matrix, vector)
+    local x = matrix[1][1] * vector[1] + matrix[1][2] * vector[2] + matrix[1][3] * vector[3]
+    local y = matrix[2][1] * vector[1] + matrix[2][2] * vector[2] + matrix[2][3] * vector[3]
+    local z = matrix[3][1] * vector[1] + matrix[3][2] * vector[2] + matrix[3][3] * vector[3]
+    return vector.new(x, y, z)
+end
+
+local function calculate_points(center, rot, d)
+    -- Baseline vector
+    local baselineVector = vector.new(1, 0, 0)
+
+    -- Create rotation matrix
+    local rotation = rotationMatrix(rot)
+
+    -- Apply rotation to baseline vector
+    local rotatedVector = matrixVectorMultiply(rotation, baselineVector)
+
+    -- Create rotated vector with inverse rotation
+    local inverseRotation = rotationMatrix(-rot)
+    local rotatedVector2 = matrixVectorMultiply(inverseRotation, baselineVector)
+
+    -- Calculate points
+    local x1 = center.x + d * rotatedVector[1]
+    local y1 = center.y + d * rotatedVector[2]
+    local z1 = center.z + d * rotatedVector[3]
+
+    local x2 = center.x + d * rotatedVector2[1]
+    local y2 = center.y + d * rotatedVector2[2]
+    local z2 = center.z + d * rotatedVector2[3]
+
+    return vector.new(x1, y1, z1), vector.new(x2, y2, z2)
+end
 
 core.register_entity("wyrda:ball_lightning", {
     initial_properties = {
@@ -741,11 +845,19 @@ core.register_entity("wyrda:ball_lightning", {
         if self.timer >= 1 then
             for obj in core.objects_inside_radius(self.object:get_pos(), 5) do
                 if obj ~= self.object then
-                    local rot = self.object:get_rotation()
+                    local rot_h = self.object:get_rotation()
                     local yaw = self.object:get_yaw()
-                    local dir = vector.rotate(self.object:get_pos(), vector.new(rot.x, yaw, rot.z))
+                    --local dir = vector.rotate(self.object:get_pos(), vector.new(rot.x, yaw, rot.z))
                     local starting_pos = self.object:get_pos()
-                    local lightning = core.add_entity(starting_pos, "wyrda:lightning", core.pos_to_string(vector.new(rot.x, yaw, rot.z)))
+
+                    local rot = vector.new(rot_h.x, yaw, rot_h.y)
+                    rot = vector.direction(self.object:get_pos(), -obj:get_pos())
+                    local d = 5
+
+                    local p1, p2 = calculate_points(starting_pos, rot, d)
+                    local dir = vector.direction(p1, p2)
+
+                    local lightning = core.add_entity(starting_pos, "wyrda:lightning", core.pos_to_string(dir))
                     core.add_particlespawner({
                         amount = 100,
                         time = 1,
@@ -754,7 +866,7 @@ core.register_entity("wyrda:ball_lightning", {
                             name = "wyrda_spell_fulst_sparks.png",
                             alpha_tween = {1, 0},
                             scale = 3,
-                            blend = "add",
+                            blend = "screen",
                         },
                         glow =14,
                         attached = lightning,
@@ -770,7 +882,7 @@ core.register_entity("wyrda:ball_lightning", {
         end
     end,
     get_staticdata = function(self) end,
-})
+})]]--
 
 -- Spells
 
@@ -846,7 +958,7 @@ if core.get_modpath("fire") ~= nil and core.get_modpath("tnt") ~= nil then
                     name = "wyrda_spell_fiera_smoke.png",
                     alpha_tween = {1, 0},
                     scale = 4,
-                    blend = "add",
+                    blend = "screen",
                 },
                 --animation = {},
                 glow = 10,
@@ -963,7 +1075,7 @@ if core.get_modpath("tnt") ~= nil then
                     name = "wyrda_spell_expol_flame.png",
                     alpha_tween = {1, 0},
                     scale = 3,
-                    blend = "add",
+                    blend = "screen",
                 },
                 --animation = {},
                 glow = 10,
@@ -1013,7 +1125,7 @@ wyrda.register_spell("flurra", {
                 name = "wyrda_spell_flurra_snow.png",
                 alpha_tween = {1, 0},
                 scale = 3,
-                blend = "add",
+                blend = "screen",
             },
             --animation = {},
             glow = 0,
@@ -1051,7 +1163,7 @@ wyrda.register_spell("flurra", {
     end,
 })
 
---[[wyrda.register_spell("fulst", {
+wyrda.register_spell("fulst", {
     name = "fulst",
     descname = "Fulst",
     desc = "Spark with electric power",
@@ -1070,7 +1182,7 @@ wyrda.register_spell("flurra", {
                 name = "wyrda_spell_fulst_sparks.png",
                 alpha_tween = {1, 0},
                 scale = 3,
-                blend = "add",
+                blend = "screen",
             },
             --animation = {},
             glow =14,
@@ -1098,7 +1210,7 @@ wyrda.register_spell("flurra", {
                 name = "wyrda_spell_fulst_sparks.png",
                 alpha_tween = {1, 0},
                 scale = 3,
-                blend = "add",
+                blend = "screen",
             },
             --animation = {},
             glow = 14,
@@ -1125,7 +1237,7 @@ wyrda.register_spell("flurra", {
     end,
 })
 
-wyrda.register_spell("hazum", {
+--[[wyrda.register_spell("hazum", {
     name = "hazum",
     descname = "Hazum",
     desc = "Biohazardous",
@@ -1133,13 +1245,13 @@ wyrda.register_spell("hazum", {
     cost2 = 14,
     cooldown = 6,
     func = function(player, message, pos)
-        -- 
+        -- corrosive puddle
         spell_particles(player, "hazum")
         if message == "" then return false end -- (ditto)
         return true
     end,
     func2 = function(player, message, pos)
-        -- 
+        -- acid rain
         spell_particles(player, "hazum")
         if message == "" then return false end -- (ditto)
         return true
