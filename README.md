@@ -142,14 +142,70 @@ It does not have any parameters and instead returns your energy stats in this fo
 
 ### Crafting
 
-Currently, the crafting of items is fairly limited.
-The only craftable item is the Empty Spell Book (`wyrda:empty_spell_book`) and is craftable like this:
+The Empty Spell Book (`wyrda:empty_spell_book`) is craftable like this:
 
 P = paper, 
 B = book, 
 S = steel ingot, 
 G = gold ingot, 
 
-    G S G
-    P B P
-    G S G
+|  |  |  |
+|--|--|--|
+|G |S |G |
+|P |B |P |
+|G |S |G |
+
+---
+A wand can be crafted from it's two parts, the Staff and the Gemstone.
+
+S = staff,
+G = gemstone
+
+|  |  |  |
+|--|--|--|
+|  |  |G |
+|  |S |  |
+|  |  |  |
+
+The staff can be crafted like this:
+
+G = gold,
+S = stick
+
+|  |  |  |
+|--|--|--|
+|  |G |S |
+|G |S |G |
+|S |G |  |
+
+The Gemstone can be crafted as follows:
+
+D = diamond,
+M = mese crystal
+
+|  |  |  |
+|--|--|--|
+|M |M |M |
+|M |D |M |
+|M |M |M |
+
+Spell books cannot be crafted and must be gotten by other means.
+I plan to have structures with books in them at some point.
+
+
+### Settings
+
+Settings in wyrda allow for direct customization of features within the mod.
+
+Black Holes can be disabled or enabled with the `allow_singularities` setting.
+
+You can change settings in-game by using the `/wyrda setting` command.
+The settings command operates as follows:
+
+`/wyrda setting <setting> <value>`
+
+For example:
+
+`/wyrda setting allow_singularities true`
+
+Which enables singularities, singularities are off by default due to their overpowered destructive capabilities.

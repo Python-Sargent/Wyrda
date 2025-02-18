@@ -93,3 +93,28 @@ dofile(modpath .. "/spells.lua")
 dofile(modpath .. "/books.lua")
 dofile(modpath .. "/spell_gen.lua")
 dofile(modpath .. "/crafting.lua")
+
+core.register_chatcommand("wyrda", {
+    params = "setting <setting> <value>\n" ..
+             "help",
+    description = "Change Wyrda's settings from console",
+    privs = {},
+    func = function(name, param)
+        local params = param:split(" ")
+		local privs = core.check_player_privs(name, {server = true})
+        if params[1] == "setting" then
+			if privs == true then
+				local val = params[3]
+                if params[2] ~= nil then
+                    if val ~= nil then core.settings:set(params[2], tostring(val)) end
+					core.chat_send_player(name, core.colorize("#4F8", "[WYRDA] Setting changed: " .. tostring(params[2]) .. " : " .. tostring(val)))
+                end
+			else
+				core.chat_send_player(name, core.colorize("#F40", "Denied: Missing required privs (server)"))
+			end
+        elseif params[1] == "help" then
+            core.chat_send_player(name, core.colorize("#0F4", "Help menu is disabled"))
+            return false
+        end
+    end,
+})
