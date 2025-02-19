@@ -35,6 +35,7 @@ As recorded manually:
 
     Jan 30, 2025: Added Fulst and Hazum spells
 
-    Feb 18, 2025: Fixed alpha for 5.11
+    Feb 18, 2025: Fixed alpha blend for 5.11
                   Added settings command
+                  Added settings
 

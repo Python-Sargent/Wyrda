@@ -2,7 +2,7 @@ if not core.settings:has("singularity_size") then
     core.settings:set("singularity_size", 50)
 end
 if not core.settings:has("allow_singularities") then
-    core.settings:set("allow_singularities", "false") --singularities are special, default is nuke
+    core.settings:set("allow_singularities", "false") --singularities must be turned on, the default is a nuke
 end
 
 local spell_particles = function(player, name)
@@ -608,7 +608,7 @@ core.register_entity("wyrda:black_hole", {
     on_punch = function(self, puncher, time_from_last_punch, tool_capabilities, dir, damage) end,
 })
 
-wyrda.plot_line = function(pos1, pos2)
+--[[wyrda.plot_line = function(pos1, pos2)
     core.add_particlespawner({
         amount = 10000,
         time = 1,
@@ -647,7 +647,7 @@ wyrda.plot_line = function(pos1, pos2)
     })
 end
 
---[[core.register_entity("wyrda:lightning", {
+core.register_entity("wyrda:lightning", {
     initial_properties = {
         visual = "mesh",
         mesh = "lightning.obj",
@@ -1163,7 +1163,7 @@ wyrda.register_spell("flurra", {
     end,
 })
 
-wyrda.register_spell("fulst", {
+--[[wyrda.register_spell("fulst", {
     name = "fulst",
     descname = "Fulst",
     desc = "Spark with electric power",
@@ -1237,7 +1237,7 @@ wyrda.register_spell("fulst", {
     end,
 })
 
---[[wyrda.register_spell("hazum", {
+wyrda.register_spell("hazum", {
     name = "hazum",
     descname = "Hazum",
     desc = "Biohazardous",
