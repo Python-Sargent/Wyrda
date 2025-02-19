@@ -167,9 +167,9 @@ G = gemstone
 |  |S |  |
 |  |  |  |
 
-The staff can be crafted like this:
+The Staff can be crafted like this:
 
-G = gold,
+G = gold ingot,
 S = stick
 
 |  |  |  |
@@ -199,13 +199,13 @@ Settings in wyrda allow for direct customization of features within the mod.
 
 Black Holes can be disabled or enabled with the `allow_singularities` setting.
 
-You can change settings in-game by using the `/wyrda setting` command.
+You can change settings in-game by using the `/wyrda settings` command.
 The settings command operates as follows:
 
-`/wyrda setting <setting> <value>`
+`/wyrda settings <setting> <value>`
 
 For example:
 
-`/wyrda setting allow_singularities true`
+`/wyrda settings allow_singularities true`
 
 Which enables singularities, singularities are off by default due to their overpowered destructive capabilities.

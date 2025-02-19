@@ -52,7 +52,13 @@ wyrda.pointed_to_pos = function(pointed)
     end
 end
 
-dofile(modpath .. "/energy.lua")
+if not core.settings:has("use_energy") then
+    core.settings:set("use_energy", "true")
+end
+
+if core.settings:get("use_energy") == "true" then
+    dofile(modpath .. "/energy.lua")
+end
 
 local function take_energy(spell, player, type)
     if type == 1 and spell.cost ~= nil then
@@ -72,15 +78,25 @@ end
 wyrda.cast = function(spell, player, message, pos, type)
     if spell == nil then return end
     if type == 1 then
-        local has_energy = take_energy(spell, player, type)
-        if has_energy then
+        if core.settings:get("use_energy") == "true" then
+            local has_energy = take_energy(spell, player, type)
+            if has_energy then
+                core.sound_play("wyrda_cast_spell", {pos = player:get_pos(), gain = 1, pitch = 2, max_hear_distance = 32}, true)
+                return spell.func(player, message, pos)
+            end
+        else
             core.sound_play("wyrda_cast_spell", {pos = player:get_pos(), gain = 1, pitch = 2, max_hear_distance = 32}, true)
             return spell.func(player, message, pos)
         end
     elseif type == 2 then
-        local has_energy = take_energy(spell, player, type)
-        if has_energy then
-            core.sound_play("wyrda_cast_spell", {pos = player:get_pos(), gain = 1, max_hear_distance = 32}, true)
+        if core.settings:get("use_energy") == "true" then
+            local has_energy = take_energy(spell, player, type)
+            if has_energy then
+                core.sound_play("wyrda_cast_spell", {pos = player:get_pos(), gain = 1, pitch = 1, max_hear_distance = 32}, true)
+                return spell.func2(player, message, pos)
+            end
+        else
+            core.sound_play("wyrda_cast_spell", {pos = player:get_pos(), gain = 1, pitch = 1, max_hear_distance = 32}, true)
             return spell.func2(player, message, pos)
         end
     end
@@ -94,27 +110,43 @@ dofile(modpath .. "/books.lua")
 dofile(modpath .. "/spell_gen.lua")
 dofile(modpath .. "/crafting.lua")
 
+local c = core.colorize
+
 core.register_chatcommand("wyrda", {
-    params = "setting <setting> <value>\n" ..
+    params = "settings <settings> <value>\n" ..
+             "settings list\n" ..
              "help",
     description = "Change Wyrda's settings from console",
     privs = {},
     func = function(name, param)
         local params = param:split(" ")
 		local privs = core.check_player_privs(name, {server = true})
-        if params[1] == "setting" then
+        if params[1] == "settings" then
 			if privs == true then
 				local val = params[3]
                 if params[2] ~= nil then
-                    if val ~= nil then core.settings:set(params[2], tostring(val)) end
-					core.chat_send_player(name, core.colorize("#4F8", "[WYRDA] Setting changed: " .. tostring(params[2]) .. " : " .. tostring(val)))
+                    if params[2] == "list" then
+                        core.chat_send_player(name, c("#8F8", "Wyrda Settings:\n") ..
+                        c("#88F", "  allow_singularities") .. "       = " .. c("#FF8", "false ") .. c("#AAA", "(whether black holes should be allowed)\n") ..
+                        c("#88F", "  singularity_size") .. "             = " .. c("#FF8", "50 ")    .. c("#AAA", "(size of black holes if allowed)\n") ..
+                        c("#88F", "  allow_crafting_wands") .. "  = " .. c("#FF8", "true ")  .. c("#AAA", "(allow wands to be crafted)\n") ..
+                        c("#88F", "  use_energy") .. "                    = " .. c("#FF8", "true ")  .. c("#AAA", "(requires restart for full effect)"))
+                    else
+                        if val ~= nil then core.settings:set(params[2], tostring(val)) end
+                        core.chat_send_player(name, c("#4F8", "[WYRDA] Setting changed: " .. tostring(params[2]) .. " : " .. tostring(val)))
+                        if params[2] == "use_energy" then
+                            core.chat_send_player(name, c("#F00", "[WYRDA] CHANGES REQUIRE RESTART TO TAKE FULL EFFECT!"))
+                        end
+                    end
+                else
+                    core.chat_send_player(name, c("#F44", "Missing secondary parameter, try 'list' for a list of settings."))
                 end
 			else
-				core.chat_send_player(name, core.colorize("#F40", "Denied: Missing required privs (server)"))
+				core.chat_send_player(name, c("#F44", "Denied: Missing required privs (server)"))
 			end
         elseif params[1] == "help" then
-            core.chat_send_player(name, core.colorize("#0F4", "Help menu is disabled"))
-            return false
+            core.chat_send_player(name, c("#F44", "[WYRDA] Help menu is disabled"))
+            return
         end
     end,
 })
