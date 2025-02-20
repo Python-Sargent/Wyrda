@@ -34,4 +34,38 @@ for i, spell in pairs(wyrda.spells) do
         inscript = "wyrda:basic_wand",
         result = "wyrda:basic_" .. spell.name .. "_wand",
     })
+
+    minetest.register_node("wyrda:" .. spell.name .. "_emblem", {
+        description = spell.descname .. " Emblem",
+        tiles = {"wyrda_nodes_carved_ghenstone.png^(wyrda_nodes_emblem_overlay.png^[colorize:" .. colors[spell.name] .. ":255)"},
+        groups = {cracky = 3, emblem=1},
+        light_source = 5,
+    })
+
+    --[[core.register_abm({ -- this is way to slow, ima use an entity instead
+        label = spell.descname .. " Spell Emblem",
+        nodenames = {"wyrda:" .. spell.name .. "_emblem"},
+        interval = 0.1,
+        chance = 1,
+        catch_up = false,
+        action = function(pos, node, active_object_count, active_object_count_wider)
+            local objs = core.get_objects_inside_radius(pos, 1.5)
+            for i, obj in pairs(objs) do
+                if obj:is_player() then
+                    wyrda.cast(wyrda.spells[spell.name], obj, "", pos, 1)
+                end
+            end
+        end
+    })]]
 end
+
+--[[
+
+local objs = core.get_objects_inside_radius(pos, 1.5)
+for i, obj in pairs(objs) do
+    if obj:is_player() then
+        wyrda.cast(spell.name, obj, "", pos, 1)
+    end
+end
+
+]]
