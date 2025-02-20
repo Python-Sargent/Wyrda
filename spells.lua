@@ -381,7 +381,14 @@ core.register_entity("wyrda:fireball", {
 
         if collided_with_node or collided_with_entity then
             
-            if core.get_modpath("tnt") then tnt.boom(moveresult.collisions[1].node_pos, {radius = 2, damage_radius = 2}) end
+            if core.get_modpath("tnt") then tnt.boom(moveresult.collisions[1].node_pos, {radius = 2, damage_radius = 2}) else
+                local objs = core.get_objects_inside_radius(moveresult.collisions[1].node_pos, 3)
+                for i, obj in pairs(objs) do
+                    if obj ~= self.object then
+                        obj:set_hp(obj:get_hp() - 4)
+                    end
+                end
+            end
             self.object:remove()
         end
     end,
