@@ -114,7 +114,7 @@ The Energy Command can be used to modify your Energy Stats.
 Max Energy is the Maximum Energy you can recharge before becoming charged.
 A full amount is generally considered 20 units. However you can make it 44 units,
 if you wish for more energy but still would like it to be symmetrical.
-Recharge Rate is a number from 0.1 to 1, and it defines the speed at which you recover energy.
+Recharge Rate is a number from 0.1 to 1, and it defines the delay at which you recover energy, a lower number means a faster regeneration of energy.
 
 The `/energy` command has two sections, the subcommand and the parameters.
 
@@ -208,7 +208,22 @@ For example:
 
 `/wyrda settings allow_singularities true`
 
-Which enables singularities, singularities are off by default due to their overpowered destructive capabilities.
+Which enables singularities, singularities are off by default due to their overpowered destructive capabilities. You won't miss out if you don't have black holes, this mod is entirely playable without them.
+
+#### List of Settings
+
+Currently the list of settings is as follows:
+
+| Setting Name         | Default | Effect                                | Requires Restart |
+|----------------------| ------- | ------------------------------------- | ---------------- |
+| allow_singularities  | false   | Whether black holes should be allowed | false            |
+| singularity_size     | 50      | Size of black holes if allowed        | false            |
+| allow_crafting_wands | true    | Allow wands to be craftable           | true             |
+| use_energy           | true    | Use the energy system                 | true             |
+| allow_cbv            | true    | Allow spells to be Cast By Voice      | false            |
+
+Settings can be changed in the menu by going to Settings > Mods > Wyrda.
+If it is easier, you can run the `/wyrda settings` command, but some settings require a restart.
 
 ### Nodes
 
@@ -247,9 +262,13 @@ And the stairs and slabs variants of these nodes:
 * Ghenstone Bricks
 * Clean Ghenstone Bricks
 
+---
+
 With these new nodes is a new node called an Emblem.
 There is one Emblem for each spell.
 
 When you walk onto this node it will cast the spell.
-For example, the risier Emblem will luanch you upwards, or slow your fall,
+For example, the Risier Emblem will luanch you upwards, or slow your fall,
 just like the wand, or casting by voice.
+
+Emblems are useful if you want a player to be able to access an area even if they don't have the wand and cannot say spells.

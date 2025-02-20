@@ -2,3 +2,4 @@ allow_singularities (Allow Black Holes) bool true
 singularity_size (Black Hole Maximum Size) int 50 10 255
 allow_crafting_wands (Allow Craftable Wands) bool true
 use_energy (Use Energy) bool true
+allow_cbv (Enable Cast by Voice) bool true

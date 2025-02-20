@@ -18,24 +18,30 @@ wyrda.check_message = function(message)
     return nil
 end
 
+if not core.settings:has("allow_cbv") then
+    core.settings:set("allow_cbv", "true")
+end
+
 core.register_on_chat_message(function(name, message)
-    local msgparams = wyrda.check_message(message)
-    local contains = nil
-    if msgparams ~= nil then contains = msgparams.spell else return false end
-    local send_msg
-    if contains ~= nil then
-        send_msg = wyrda.cast(contains, core.get_player_by_name(name), message, core.get_player_by_name(name):get_pos(), 1)
+    if core.settings:get("allow_cbv") == "true" then
+        local msgparams = wyrda.check_message(message)
+        local contains = nil
+        if msgparams ~= nil then contains = msgparams.spell else return false end
+        local send_msg
+        if contains ~= nil then
+            send_msg = wyrda.cast(contains, core.get_player_by_name(name), message, core.get_player_by_name(name):get_pos(), 1)
+        end
+        local msg = "<" .. name .. "> "
+        for i, v in pairs(msgparams.words) do
+            if i == msgparams.i then
+                msg = msg .. core.colorize("#88CCFF", msgparams.words[i]) .. " "
+            else
+                msg = msg .. msgparams.words[i] .. " "
+            end 
+        end
+        if send_msg then minetest.chat_send_all(msg) end
+        return true
     end
-    local msg = "<" .. name .. "> "
-    for i, v in pairs(msgparams.words) do
-        if i == msgparams.i then
-            msg = msg .. core.colorize("#88CCFF", msgparams.words[i]) .. " "
-        else
-            msg = msg .. msgparams.words[i] .. " "
-        end 
-    end
-    if send_msg then minetest.chat_send_all(msg) end
-    return true
 end)
 
 wyrda.pointed_to_pos = function(pointed)
@@ -132,7 +138,8 @@ core.register_chatcommand("wyrda", {
                         c("#88F", "  allow_singularities") .. "       = " .. c("#FF8", "false ") .. c("#AAA", "(whether black holes should be allowed)\n") ..
                         c("#88F", "  singularity_size") .. "             = " .. c("#FF8", "50 ")    .. c("#AAA", "(size of black holes if allowed)\n") ..
                         c("#88F", "  allow_crafting_wands") .. "  = " .. c("#FF8", "true ")  .. c("#AAA", "(allow wands to be crafted)\n") ..
-                        c("#88F", "  use_energy") .. "                    = " .. c("#FF8", "true ")  .. c("#AAA", "(requires restart for full effect)"))
+                        c("#88F", "  use_energy") .. "                    = " .. c("#FF8", "true ")  .. c("#AAA", "(requires restart for full effect)\n") ..
+                        c("#88F", "  allow_cbv") .. "                       = " .. c("#FF8", "true ")  .. c("#AAA", "(Whether to scan chat for Cast by Voice)"))
                     else
                         if val ~= nil then core.settings:set(params[2], tostring(val)) end
                         core.chat_send_player(name, c("#4F8", "[WYRDA] Setting changed: " .. tostring(params[2]) .. " : " .. tostring(val)))
