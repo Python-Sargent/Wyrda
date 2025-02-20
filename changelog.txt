@@ -38,4 +38,8 @@ As recorded manually:
     Feb 18, 2025: Fixed alpha blend for 5.11
                   Added settings command
                   Added settings
+    
+    Feb 20, 2025: Added Emblems
+                  Added nodes for structures
+                  Fireball works without default mod
 

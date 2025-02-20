@@ -209,3 +209,47 @@ For example:
 `/wyrda settings allow_singularities true`
 
 Which enables singularities, singularities are off by default due to their overpowered destructive capabilities.
+
+### Nodes
+
+With the release of Feb 20th's version, there are now a suite of nodes to choose from.
+These nodes are for Structures. The structures are the perfect way to get spell books in survival.
+
+The nodes fall under the group name of Ghenstone, a new highly durable stone.
+
+The list of nodes are as follows:
+
+* Ghenstone
+* Shattered Ghenstone
+* Molding Ghenstone
+* Overgrown Ghenstone
+* Clean Ghenstone
+* Smoothed Ghenstone
+* Carved Ghenstone
+* Tiled Ghenstone
+* Darkened Ghenstone
+* Ghenstone Bricks
+* Clean Ghenstone Bricks
+* Mold
+* Overgrowth
+
+And the stairs and slabs variants of these nodes:
+
+* Ghenstone
+* Shattered Ghenstone
+* Molding Ghenstone
+* Overgrown Ghenstone
+* Clean Ghenstone
+* Smoothed Ghenstone
+* Carved Ghenstone
+* Tiled Ghenstone
+* Darkened Ghenstone
+* Ghenstone Bricks
+* Clean Ghenstone Bricks
+
+With these new nodes is a new node called an Emblem.
+There is one Emblem for each spell.
+
+When you walk onto this node it will cast the spell.
+For example, the risier Emblem will luanch you upwards, or slow your fall,
+just like the wand, or casting by voice.
