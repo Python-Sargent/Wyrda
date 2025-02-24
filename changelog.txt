@@ -44,3 +44,6 @@ As recorded manually:
                   Fireball works without default mod
                   Add Cast By Voice setting
 
+    Feb 21, 2025: Added Containers
+                  Fixed Emblem Bugs
+

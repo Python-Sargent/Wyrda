@@ -381,7 +381,7 @@ core.register_entity("wyrda:fireball", {
 
         if collided_with_node or collided_with_entity then
             
-            if core.get_modpath("tnt") then tnt.boom(moveresult.collisions[1].node_pos, {radius = 2, damage_radius = 2}) else
+            if core.get_modpath("tnt") then tnt.boom(moveresult.collisions[1].node_pos, {radius = 2, damage_radius = 2, explode_center=false}) else
                 local objs = core.get_objects_inside_radius(moveresult.collisions[1].node_pos, 3)
                 for i, obj in pairs(objs) do
                     if obj ~= self.object then
@@ -446,7 +446,7 @@ core.register_entity("wyrda:bomb", {
 
         if collided_with_node or collided_with_entity then
             local pos = moveresult.collisions[1].node_pos or moveresult.collisions[1].object:get_pos()
-            if core.get_modpath("tnt") then tnt.boom(pos, {radius = 2, damage_radius = 2}) end
+            if core.get_modpath("tnt") then tnt.boom(pos, {radius = 2, damage_radius = 2, explode_center = false}) end
             self.object:remove()
         end
     end,
@@ -1009,14 +1009,16 @@ wyrda.register_spell("disperim", {
         local positions = {}
         for i, obj in pairs(objs) do
             if obj:get_player_name() ~= player:get_player_name() then
-                obj:add_velocity(vector.offset(vector.multiply(vector.direction(player:get_pos(), obj:get_pos()), 5), 0, 10, 0))
+                --obj:add_velocity(vector.offset(vector.multiply(vector.direction(player:get_pos(), obj:get_pos()), 5), 0, 10, 0))
                 table.insert(positions, obj)
             end
         end
         for i, obj in pairs(positions) do
-            local pos = obj:get_pos()
-            obj:set_pos(player:get_pos())
-            player:set_pos(pos)
+            if obj:is_player() or obj:get_properties().physical == true then
+                local pos = obj:get_pos()
+                obj:set_pos(player:get_pos())
+                player:set_pos(pos)
+            end
         end
         spell_particles(player, "disperim")
         if message == "" then return false end -- (ditto)

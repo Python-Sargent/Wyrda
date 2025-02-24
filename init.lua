@@ -116,7 +116,8 @@ dofile(modpath .. "/books.lua")
 dofile(modpath .. "/spell_gen.lua")
 dofile(modpath .. "/crafting.lua")
 dofile(modpath .. "/nodes.lua")
-dofile(modpath .. "/mapgen.lua")
+dofile(modpath .. "/container.lua")
+--dofile(modpath .. "/mapgen.lua")
 
 local c = core.colorize
 

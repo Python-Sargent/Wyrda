@@ -10,6 +10,7 @@ minetest.register_node("wyrda:ghenstone", {
 	groups = {cracky = 2, stone = 1},
 	drop = "wyrda:shattered_ghenstone",
 	sounds = stone_sounds,
+    on_blast = function() end,
 })
 
 minetest.register_node("wyrda:shattered_ghenstone", {
@@ -25,6 +26,7 @@ minetest.register_node("wyrda:molding_ghenstone", {
 	groups = {cracky = 2, stone = 1},
 	drop = "wyrda:shattered_ghenstone",
 	sounds = stone_sounds,
+    on_blast = function() end,
 })
 
 minetest.register_node("wyrda:overgrown_ghenstone", {
@@ -33,6 +35,7 @@ minetest.register_node("wyrda:overgrown_ghenstone", {
 	groups = {cracky = 2, stone = 1},
 	drop = "wyrda:shattered_ghenstone",
 	sounds = stone_sounds,
+    on_blast = function() end,
 })
 
 minetest.register_node("wyrda:clean_ghenstone", {
@@ -40,6 +43,7 @@ minetest.register_node("wyrda:clean_ghenstone", {
 	tiles = {"wyrda_nodes_clean_ghenstone.png"},
 	groups = {cracky = 3, stone = 1},
 	sounds = stone_sounds,
+    on_blast = function() end,
 })
 
 minetest.register_node("wyrda:smoothed_ghenstone", {
@@ -47,6 +51,7 @@ minetest.register_node("wyrda:smoothed_ghenstone", {
 	tiles = {"wyrda_nodes_smoothed_ghenstone.png"},
 	groups = {cracky = 3, stone = 1},
 	sounds = stone_sounds,
+    on_blast = function() end,
 })
 
 minetest.register_node("wyrda:carved_ghenstone", {
@@ -54,6 +59,7 @@ minetest.register_node("wyrda:carved_ghenstone", {
 	tiles = {"wyrda_nodes_carved_ghenstone.png"},
 	groups = {cracky = 3, stone = 1},
 	sounds = stone_sounds,
+    on_blast = function() end,
 })
 
 minetest.register_node("wyrda:tiled_ghenstone", {
@@ -61,6 +67,7 @@ minetest.register_node("wyrda:tiled_ghenstone", {
 	tiles = {"wyrda_nodes_tiled_ghenstone.png"},
 	groups = {cracky = 3, stone = 1},
 	sounds = stone_sounds,
+    on_blast = function() end,
 })
 
 minetest.register_node("wyrda:darkened_ghenstone", {
@@ -68,6 +75,7 @@ minetest.register_node("wyrda:darkened_ghenstone", {
 	tiles = {"wyrda_nodes_darkened_ghenstone.png"},
 	groups = {cracky = 3, stone = 1},
 	sounds = stone_sounds,
+    on_blast = function() end,
 })
 
 minetest.register_node("wyrda:ghenstone_bricks", {
@@ -75,6 +83,7 @@ minetest.register_node("wyrda:ghenstone_bricks", {
 	tiles = {"wyrda_nodes_ghenstone_bricks.png"},
 	groups = {cracky = 3, stone = 1},
 	sounds = stone_sounds,
+    on_blast = function() end,
 })
 
 minetest.register_node("wyrda:clean_ghenstone_bricks", {
@@ -82,6 +91,7 @@ minetest.register_node("wyrda:clean_ghenstone_bricks", {
 	tiles = {"wyrda_nodes_clean_ghenstone_bricks.png"},
 	groups = {cracky = 3, stone = 1},
 	sounds = stone_sounds,
+    on_blast = function() end,
 })
 
 minetest.register_node("wyrda:mold", {

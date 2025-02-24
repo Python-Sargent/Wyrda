@@ -102,14 +102,32 @@ if core.settings:get("allow_crafting_wands") == "true" then
                 {"default:stick", "default:gold_ingot", ""},
             }
         })
-
-        minetest.register_craft({
-            output = "wyrda:basic_gemstone",
-            recipe = {
-                {"default:mese_crystal", "default:mese_crystal", "default:mese_crystal"},
-                {"default:mese_crystal", "default:diamond", "default:mese_crystal"},
-                {"default:mese_crystal", "default:mese_crystal", "default:mese_crystal"},
-            }
-        })
     end
+
+    minetest.register_craft({
+        output = "wyrda:basic_gemstone",
+        recipe = {
+            {"default:mese_crystal", "default:mese_crystal", "default:mese_crystal"},
+            {"default:mese_crystal", "default:diamond", "default:mese_crystal"},
+            {"default:mese_crystal", "default:mese_crystal", "default:mese_crystal"},
+        }
+    })
+
+    minetest.register_craft({
+        output = "wyrda:energized_gemstone",
+        recipe = {
+            {"default:mese_crystal", "default:diamond", "default:mese_crystal"},
+            {"default:diamond", "wyrda:basic_gemstone", "default:diamond"},
+            {"default:mese_crystal", "default:diamond", "default:mese_crystal"},
+        }
+    })
+
+    minetest.register_craft({
+        output = "wyrda:inscription_table",
+        recipe = {
+            {"", "default:book", ""},
+            {"default:mese_crystal", "group:wood", "default:mese_crystal"},
+            {"group:wood", "group:wood", "group:wood"},
+        }
+    })
 end
