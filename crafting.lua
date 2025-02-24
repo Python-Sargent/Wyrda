@@ -8,11 +8,6 @@ if core.settings:get("allow_crafting_wands") == "true" then
         inventory_image = "wyrda_basic_staff.png",
     })
 
-    core.register_craftitem("wyrda:basic_gemstone", {
-        description = "Basic Gemstone",
-        inventory_image = "wyrda_basic_gemstone.png",
-    })
-
     --[[
     core.register_craftitem("wyrda:calibrated_gemstone", {
         description = "Calibrated Gemstone",
@@ -77,14 +72,6 @@ if core.settings:get("allow_crafting_wands") == "true" then
     ]] -- just some stuff that I might add sometime
 
     if core.get_modpath("default") ~= nil then
-        minetest.register_craft({
-            output = "wyrda:empty_spell_book",
-            recipe = {
-                {"default:gold_ingot", "default:steel_ingot", "default:gold_ingot"},
-                {"default:paper", "default:book", "default:paper"},
-                {"default:gold_ingot", "default:steel_ingot", "default:gold_ingot"},
-            }
-        })
 
         minetest.register_craft({
             output = "wyrda:basic_wand",
@@ -103,7 +90,19 @@ if core.settings:get("allow_crafting_wands") == "true" then
             }
         })
     end
+end
 
+core.register_craftitem("wyrda:basic_gemstone", {
+    description = "Basic Gemstone",
+    inventory_image = "wyrda_basic_gemstone.png",
+})
+
+core.register_craftitem("wyrda:energized_gemstone", {
+    description = "Energized Gemstone",
+    inventory_image = "wyrda_energized_gemstone.png",
+})
+
+if core.get_modpath("default") ~= nil then
     minetest.register_craft({
         output = "wyrda:basic_gemstone",
         recipe = {
@@ -127,6 +126,24 @@ if core.settings:get("allow_crafting_wands") == "true" then
         recipe = {
             {"", "default:book", ""},
             {"default:mese_crystal", "group:wood", "default:mese_crystal"},
+            {"group:wood", "group:wood", "group:wood"},
+        }
+    })
+
+    minetest.register_craft({
+        output = "wyrda:empty_spell_book",
+        recipe = {
+            {"default:gold_ingot", "default:steel_ingot", "default:gold_ingot"},
+            {"default:paper", "default:book", "default:paper"},
+            {"default:gold_ingot", "default:steel_ingot", "default:gold_ingot"},
+        }
+    })
+else
+    minetest.register_craft({
+        output = "wyrda:inscription_table", -- craft for if default mod is not available
+        recipe = {
+            {"", "wyrda:empty_spell_book", ""},
+            {"wyrda:energized_gemstone", "group:wood", "wyrda:energized_gemstone"},
             {"group:wood", "group:wood", "group:wood"},
         }
     })
