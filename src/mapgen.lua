@@ -191,8 +191,8 @@ core.register_chatcommand("mapgen", {
                 local x = params[4]
                 local y = params[5]
                 local z = params[6]
-                if params[2] ~= nil and struct_namename ~= nil and (x ~= nil and y ~= nil and z ~= nil) then
-                    wyrda.mapgen.spawn_structure(struct_name, params[2], core.string_to_pos("("..x..","..y..","..z..")"))
+                if params[2] ~= nil and struct_name ~= nil and (x ~= nil and y ~= nil and z ~= nil) then
+                    wyrda.mapgen.spawn_structure(struct_name, core.string_to_pos("("..x..","..y..","..z..")"), params[2])
                 else
                     core.chat_send_player(name, core.colorize("#F44", "Missing secondary parameter, try /mapgen help"))
                 end
@@ -214,4 +214,3 @@ core.register_chatcommand("mapgen", {
         end
     end,
 })
-

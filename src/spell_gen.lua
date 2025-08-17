@@ -59,17 +59,21 @@ for i, spell in pairs(wyrda.spells) do
             selectionbox = { -1, -0.5, -1, 1, 1, 1, rotate = false },
             pointable = false,
             visual_size = {x = 10, y = 10, z = 10},
-            textures = {"wyrda_emblem_marker.png^[colorize:" .. colors[spell.name] .. ":150"},
+            textures = {"wyrda_emblem_marker.png^[colorize:" .. colors[spell.name] .. ":alpha"},
             use_texture_alpha = true,
             backface_culling = false,
             is_visible = true,
             makes_footstep_sound = false,
             glow = 5,
-            static_save = false,
             shaded = true,
         },
         nodepos = "",
         cooldown = 0,
+        on_deactivate = function(self, removal)
+            if removal ~= true then
+                -- save data in staticdata
+            end
+        end,
         on_activate = function(self, staticdata, dtime_s)
             if not staticdata or not core.get_node(core.string_to_pos(staticdata)) then
                 self.object:remove()
@@ -78,7 +82,7 @@ for i, spell in pairs(wyrda.spells) do
             
             self.nodepos = staticdata
         end,
-        on_deactivate = function(self, removal) end,
+        --on_deactivate = function(self, removal) end,
         on_step = function(self, dtime, moveresult)
             self.object:set_velocity(vector.zero())
             self.cooldown = self.cooldown - dtime
@@ -100,19 +104,20 @@ for i, spell in pairs(wyrda.spells) do
     local markers = {}
 
     local destruct = function(pos)
-        for obj in core.objects_inside_radius(pos, 2) do
-            for i, marker in pairs(markers) do
-                if (obj == i or obj == marker) or (obj == markers[i] or obj == markers[marker]) then
-                    obj:remove()
-                end
-            end
+        local meta = core.get_meta(pos)
+        local guid = meta:get_string("emk_guid")
+        local obj = core.objects_by_guid[guid]
+        if obj then
+            obj:remove()
         end
     end
 
     local construct = function(pos)
         local starting_pos = vector.offset(pos, 0, 1, 0)
         local marker = core.add_entity(starting_pos, "wyrda:" .. spell.name .. "_emblem_marker", core.pos_to_string(pos))
-        markers[marker] = marker
+        local guid = marker:get_guid()
+        local meta = core.get_meta(pos)
+        meta:set_string("emk_guid", guid)
     end
 
     minetest.register_node("wyrda:" .. spell.name .. "_emblem", {

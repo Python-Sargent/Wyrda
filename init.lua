@@ -1,6 +1,7 @@
 wyrda = {}
 
 local modpath = core.get_modpath("wyrda")
+local srcpath = modpath .. "/src/"
 
 wyrda.spells = {}
 
@@ -63,7 +64,7 @@ if not core.settings:has("use_energy") then
 end
 
 if core.settings:get("use_energy") == "true" then
-    dofile(modpath .. "/energy.lua")
+    dofile(srcpath .. "/energy.lua")
 end
 
 local function take_energy(spell, player, type)
@@ -108,16 +109,16 @@ wyrda.cast = function(spell, player, message, pos, type)
     end
 end
 
-dofile(modpath .. "/helper.lua")
-dofile(modpath .. "/wands.lua")
-dofile(modpath .. "/inscription.lua")
-dofile(modpath .. "/spells.lua")
-dofile(modpath .. "/books.lua")
-dofile(modpath .. "/spell_gen.lua")
-dofile(modpath .. "/crafting.lua")
-dofile(modpath .. "/nodes.lua")
-dofile(modpath .. "/container.lua")
---dofile(modpath .. "/mapgen.lua")
+dofile(srcpath .. "/helper.lua")
+dofile(srcpath .. "/wands.lua")
+dofile(srcpath .. "/inscription.lua")
+dofile(srcpath .. "/spells.lua")
+dofile(srcpath .. "/books.lua")
+dofile(srcpath .. "/spell_gen.lua")
+dofile(srcpath .. "/crafting.lua")
+dofile(srcpath .. "/nodes.lua")
+dofile(srcpath .. "/container.lua")
+--dofile(srcpath .. "/mapgen.lua")
 
 local c = core.colorize
 
