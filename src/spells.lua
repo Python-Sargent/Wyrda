@@ -106,6 +106,16 @@ core.register_globalstep(function(dtime)
     end
 end)
 
+--[[local function exclude_entities(obj, rules)
+    local odef = obj:get_luaentity()
+    for r in rules do
+        if odef[r.property] ~= r.value then
+            return false
+        end
+    end
+    return true
+end]]--
+
 core.register_entity("wyrda:snowball", {
     initial_properties = {
         visual = "mesh",
@@ -386,17 +396,17 @@ core.register_entity("wyrda:shield", {
                     if self.resistance > 5 then
                         if (obj:is_player() and obj:get_player_name() ~= self.player_name) or (obj:get_luaentity() ~= nil and obj:get_luaentity().name == self.object:get_luaentity().name) then
                             local hp = obj:get_hp()
-                            obj:set_hp(hp - 2, self.object)
+                            obj:set_hp(hp - 2, core.get_player_by_name(self.player_name))
                         end
                         self.resistance = 0
                     else
                         local hp = obj:get_hp()
                         if (obj:is_player() and obj:get_player_name() ~= self.player_name) or (obj:get_luaentity() ~= nil and obj:get_luaentity().name == self.object:get_luaentity().name) then
-                            obj:set_hp(hp - 1, self.object)
+                            obj:set_hp(hp - 1, core.get_player_by_name(self.player_name))
                         end
                         self.resistance = self.resistance + 1
                         if obj:get_hp() ~= hp then
-                            obj:set_hp(hp, self.object)
+                            obj:set_hp(hp, core.get_player_by_name(self.player_name))
                         end
                     end
 
@@ -487,7 +497,7 @@ core.register_entity("wyrda:fireball", {
                 local objs = core.get_objects_inside_radius(moveresult.collisions[1].node_pos, 3)
                 for i, obj in pairs(objs) do
                     if obj ~= self.object then
-                        obj:set_hp(obj:get_hp() - 4)
+                        obj:set_hp(obj:get_hp() - 4, core.get_player_by_name(self.player_name))
                     end
                 end
             end
@@ -550,6 +560,106 @@ core.register_entity("wyrda:bomb", {
             local pos = moveresult.collisions[1].node_pos or moveresult.collisions[1].object:get_pos()
             if core.get_modpath("tnt") then tnt.boom(pos, {radius = 2, damage_radius = 2, explode_center = false}) end
             self.object:remove()
+        end
+    end,
+    get_staticdata = function(self) end,
+})
+
+core.register_entity("wyrda:sword", {
+    initial_properties = {
+        visual = "mesh",
+        mesh = "sword.obj",
+        hp_max = 10000,
+        physical = true,
+        collide_with_objects = false,
+        collisionbox = { -0.125, -0.5, -0.125, 0.125, 1.5, 0.125 },
+        selectionbox = { -0.125, -1.5, -0.125, 0.125, 1.5, 0.125, rotate = true},
+        visual_size = {x = 10, y = 10, z = 10},
+        textures = {
+            "wyrda_sword_blade.png",
+            "wyrda_sword_handle.png",
+            "wyrda_sword_trim.png"
+        },
+        makes_footstep_sound = false,
+        lifetime = 5,
+    },
+    player_name = "",
+    landed = false,
+    cooldown = 0.1,
+    resistance = 0,
+    on_activate = function(self, staticdata, dtime_s)
+        if not staticdata or not core.get_player_by_name(staticdata) then
+            self.object:remove()
+            return
+        end
+    
+        self.player_name = staticdata
+
+        core.after(self.initial_properties.lifetime, function() self.object:remove() end)
+    end,
+    on_deactivate = function(self, removal) end,
+    on_step = function(self, dtime, moveresult)
+        local collided_with_node = moveresult.collisions[1] and moveresult.collisions[1].type == "node"
+
+        local pos = self.object:get_pos()
+        if collided_with_node then
+            self.landed = true
+            local objs = core.get_objects_inside_radius(pos, 5)
+            for i, obj in pairs(objs) do
+                if obj:is_player() or obj:get_luaentity().name ~= self.object:get_luaentity().name then
+                    obj:add_velocity(vector.offset(vector.multiply(vector.direction(pos, obj:get_pos()), 20), 0, 0, 0))
+                end
+            end
+            core.add_particlespawner({
+                amount = 300,
+                time = 0.25,
+                vertical = false,
+                texture = {
+                    name = "wyrda_spell_disperim_smash.png",
+                    alpha_tween = {1, 0},
+                    scale = 10,
+                    blend = "screen",
+                },
+                glow = 0,
+                pos_tween = {
+                    style = "fwd",
+                    reps = 1,
+                    start = 0.0,
+                    { min = vector.offset(self.object:get_pos(),  0.25,  -0.125,  0.25),
+                      max = vector.offset(self.object:get_pos(), -0.25, -0.25, -0.25), },
+                    { min = vector.offset(self.object:get_pos(),  5,  -0.125,  5),
+                      max = vector.offset(self.object:get_pos(), -5, -0.25, -5), },
+                },
+            })
+        end
+
+        local objs = core.get_objects_inside_radius(pos, 1)
+        for i, obj in pairs(objs) do
+            if (obj:is_player() and obj:get_player_name() ~= self.player_name) or
+                (obj:get_luaentity() ~= nil and obj:get_luaentity().name ~= self.object:get_luaentity().name) then
+
+                if self.cooldown <= 0 then
+                    self.cooldown = 0.1
+                    if self.resistance > 5 then
+                        local hp = obj:get_hp()
+                        obj:set_hp(hp - 2, core.get_player_by_name(self.player_name))
+                        self.resistance = 0
+                    else
+                        local hp = obj:get_hp()
+                        obj:set_hp(hp - 1, core.get_player_by_name(self.player_name))
+                        self.resistance = self.resistance + 1
+                        if obj:get_hp() ~= hp then
+                            obj:set_hp(hp, core.get_player_by_name(self.player_name))
+                        end
+                    end
+                else
+                    self.cooldown = self.cooldown - dtime
+                end
+            end
+        end
+        
+        if self.landed == false then
+            self.object:add_velocity(vector.new(0, -2, 0))
         end
     end,
     get_staticdata = function(self) end,
@@ -1096,18 +1206,6 @@ wyrda.register_spell("disperim", {
     func = function(player, message, pos)
         if pos == nil then return false end
         local objs = core.get_objects_inside_radius(player:get_pos(), 5)
-        for i, obj in pairs(objs) do
-            if obj:get_player_name() ~= player:get_player_name() then
-                obj:add_velocity(vector.offset(vector.multiply(vector.direction(player:get_pos(), obj:get_pos()), 5), 0, 5, 0))
-            end
-        end
-        spell_particles(player, "disperim")
-        if message == "" then return false end -- (ditto)
-        return true
-    end,
-    func2 = function(player, message, pos)
-        if pos == nil then return false end
-        local objs = core.get_objects_inside_radius(player:get_pos(), 5)
         local positions = {}
         for i, obj in pairs(objs) do
             if obj:get_player_name() ~= player:get_player_name() then
@@ -1126,6 +1224,14 @@ wyrda.register_spell("disperim", {
         if message == "" then return false end -- (ditto)
         return true
     end,
+    func2 = function(player, message, pos)
+        if pos == nil then return false end
+        local throw_starting_pos = vector.offset(player:get_pos(), 0, 4, 0)
+        local sword = core.add_entity(throw_starting_pos, "wyrda:sword", player:get_player_name())
+        spell_particles(player, "disperim")
+        if message == "" then return false end -- (ditto)
+        return true
+    end,
 })
 
 wyrda.register_spell("sanium", {
@@ -1137,16 +1243,16 @@ wyrda.register_spell("sanium", {
     cooldown = 4,
     func = function(player, message, pos)
         local hp = player:get_hp()
-        player:set_hp(math.min(20, hp + 4))
+        player:set_hp(math.min(20, hp + 4), player)
         spell_particles(player, "sanium")
         if message == "" then return false end -- (ditto)
         return true
     end,
     func2 = function(player, message, pos)
         local hp = player:get_hp()
-        player:set_hp(math.min(20, hp + 4))
+        player:set_hp(math.min(20, hp + 4), player)
 
-        local player_pos = vector.offset(player:get_pos(), 0, 1.5, 0)
+        local player_pos = vector.offset(player:get_pos(), 0, 3, 0)
         local look_dir = player:get_look_dir()
         look_dir.y = 0
         look_dir = vector.normalize(look_dir)
