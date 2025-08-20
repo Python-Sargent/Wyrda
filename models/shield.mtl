@@ -1,12 +1,22 @@
-# Blender 4.3.1 MTL File: 'shield.blend'
+# Blender 4.5.1 LTS MTL File: 'shield.blend'
 # www.blender.org
 
-newmtl Shield
-Ns 250.000000
+newmtl Base
+Ns 0.000000
 Ka 1.000000 1.000000 1.000000
 Ks 0.500000 0.500000 0.500000
 Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd /home/samuel/Github/luanti2/mods/Wyrda/textures/wyrda_inscription_table_side.png
+map_Kd /home/samuel/.minetest/mods/Wyrda/textures/wyrda_shield_base.png
+
+newmtl Frame
+Ns 714.793457
+Ka 0.459091 0.459091 0.459091
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd /home/samuel/.minetest/mods/Wyrda/textures/wyrda_shield_frame.png
