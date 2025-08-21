@@ -607,7 +607,7 @@ core.register_entity("wyrda:sword", {
             local objs = core.get_objects_inside_radius(pos, 5)
             for i, obj in pairs(objs) do
                 if obj:is_player() or obj:get_luaentity().name ~= self.object:get_luaentity().name then
-                    obj:add_velocity(vector.offset(vector.multiply(vector.direction(pos, obj:get_pos()), 20), 0, 0, 0))
+                    obj:add_velocity(vector.offset(vector.multiply(vector.direction(pos, obj:get_pos()), 20), 0, 2, 0))
                 end
             end
             core.add_particlespawner({
@@ -631,6 +631,7 @@ core.register_entity("wyrda:sword", {
                       max = vector.offset(self.object:get_pos(), -5, -0.25, -5), },
                 },
             })
+            core.sound_play("wyrda_sword_smash", {pos = pos, gain = 3, pitch = 1, max_hear_distance = 32}, true)
         end
 
         local objs = core.get_objects_inside_radius(pos, 1)
@@ -864,7 +865,7 @@ core.register_entity("wyrda:black_hole", {
             max = vector.offset(pos2, -0.1, -0.1, -0.1),
         },
     })
-end
+end]]--
 
 core.register_entity("wyrda:lightning", {
     initial_properties = {
@@ -872,7 +873,6 @@ core.register_entity("wyrda:lightning", {
         mesh = "lightning.obj",
         hp_max = 20,
         physical = false,
-        collide_with_objects = false,
         collisionbox = { -0, -0, -0, 0, 0, 0 },
         selectionbox = { -0, -0, -0, 0, 0, 0 },
         pointable = false,
@@ -887,130 +887,56 @@ core.register_entity("wyrda:lightning", {
         backface_culling = false,
         static_save = false,
         shaded = true,
-        lifetime = 1,
+        lifetime = 10,
     },
     player_name = "",
-    timer = 1.1, -- to force it to damage on the first step
+    timer = 1.1,
+    dir = nil,
     on_activate = function(self, staticdata, dtime_s) 
-        if not staticdata then
+        if not staticdata or not core.get_player_by_name(staticdata) then
             self.object:remove()
             return
         end
     
-        if staticdata ~= "" and not vector.check(core.string_to_pos(staticdata)) and core.get_player_by_name(staticdata) then
-            self.player_name = staticdata
-            local player = core.get_player_by_name(staticdata)
-            local yaw = player:get_look_horizontal()
-            local pitch = player:get_look_vertical()
-            local dir = player:get_look_dir()
+        self.player_name = staticdata
+        local player = core.get_player_by_name(staticdata)
+        self.object:set_yaw(player:get_look_horizontal())
+        local pitch = player:get_look_vertical()
+        local dir = player:get_look_dir()
+        local pos = self.object:get_pos()
 
-            self.object:set_pos((vector.add(self.object:get_pos(), vector.multiply(dir, 5))))
-        
-            self.object:set_rotation({x = -pitch, y = yaw, z = 0})
-        elseif vector.check(core.string_to_pos(staticdata)) then
-            local stp = core.string_to_pos(staticdata)
-            local pitch = stp.x
-            local yaw = stp.y
-            self.object:set_rotation({x = -pitch, y = yaw, z = 0})
-        end
+        self.dir = dir
+
+        local rot = self.object:get_rotation()
+        self.object:set_rotation(vector.offset(rot, -pitch, 0, 0))
+        self.object:set_pos((vector.add(self.object:get_pos(), vector.multiply(dir, 5))))
     
         core.after(self.initial_properties.lifetime, function() self.object:remove() end)
     end,
     on_deactivate = function(self, removal) end,
     on_step = function(self, dtime, moveresult)
         self.timer = self.timer + dtime
-        local r = self.object:get_rotation()
-        local y = self.object:get_yaw()
-        local rot = vector.new(r.x, y, r.z)
-        local pos1 = vector.new(
-            self.object:get_pos().x + math.cos(rot.x) * 5,
-            self.object:get_pos().y + math.sin(rot.y) * 5,
-            self.object:get_pos().z + math.cos(rot.z) * 5)
-        local pos2 = vector.new(
-            self.object:get_pos().x - math.cos(rot.x) * 5,
-            self.object:get_pos().y - math.sin(rot.y) * 5,
-            self.object:get_pos().z - math.cos(rot.z) * 5)
         if self.timer >= 1 then
+            local pos = self.object:get_pos()
+
+            local pos1 = vector.add(pos, vector.multiply(self.dir, -5))
+            local pos2 = vector.add(pos, vector.multiply(self.dir, 5))
+            --wyrda.plot_line(pos1, pos2)
             local ray = core.raycast(pos1, pos2, true, false)
             for pointed_thing in ray do
                 if pointed_thing and pointed_thing.type == "object" then
                     local obj = pointed_thing.ref
-                    if obj ~= self.object then -- and obj:get_player_name() ~= self.player_name
+                    if obj ~= self.object and (obj:is_player() and obj:get_player_name() ~= self.player_name) then
                         obj:set_hp(obj:get_hp() - 4)
                     end
                 end
             end
-            wyrda.plot_line(pos1, pos2)
             self.timer = 0
         end
-        local ray = core.raycast(pos1, pos2, true, false)
-        for pointed_thing in ray do
-            if pointed_thing and pointed_thing.type == "object" then
-                local obj = pointed_thing.ref
-                if obj ~= self.object then -- and obj:get_player_name() ~= self.player_name
-                    if electrified_entities[obj:get_player_name()] == nil then
-                        electrified_entities[obj:get_player_name()] = {
-                        obj = obj:get_player_name(), timer = -1, damage = 0, hud_id = nil}
-                    end
-                end
-            end
-        end
-        wyrda.plot_line(pos1, pos2)
-        self.timer = 0
+        -- 
     end,
     get_staticdata = function(self) end,
 })
-
--- Function to create a rotation matrix from Euler angles (in radians)
-local function rotationMatrix(pos)
-    local cosX = math.cos(pos.x)
-    local sinX = math.sin(pos.x)
-    local cosY = math.cos(pos.y)
-    local sinY = math.sin(pos.y)
-    local cosZ = math.cos(pos.z)
-    local sinZ = math.sin(pos.z)
-
-    local matrix = {
-        {cosY * cosZ, cosX * sinZ + sinX * sinY * cosZ, sinX * sinZ - cosX * sinY * cosZ},
-        {-cosY * sinZ, cosX * cosZ - sinX * sinY * sinZ, sinX * cosZ + cosX * sinY * sinZ},
-        {sinY, -sinX * cosY, cosX * cosY}
-    }
-    return matrix
-end
-
--- Function to multiply a matrix and a vector
-local function matrixVectorMultiply(matrix, vector)
-    local x = matrix[1][1] * vector[1] + matrix[1][2] * vector[2] + matrix[1][3] * vector[3]
-    local y = matrix[2][1] * vector[1] + matrix[2][2] * vector[2] + matrix[2][3] * vector[3]
-    local z = matrix[3][1] * vector[1] + matrix[3][2] * vector[2] + matrix[3][3] * vector[3]
-    return vector.new(x, y, z)
-end
-
-local function calculate_points(center, rot, d)
-    -- Baseline vector
-    local baselineVector = vector.new(1, 0, 0)
-
-    -- Create rotation matrix
-    local rotation = rotationMatrix(rot)
-
-    -- Apply rotation to baseline vector
-    local rotatedVector = matrixVectorMultiply(rotation, baselineVector)
-
-    -- Create rotated vector with inverse rotation
-    local inverseRotation = rotationMatrix(-rot)
-    local rotatedVector2 = matrixVectorMultiply(inverseRotation, baselineVector)
-
-    -- Calculate points
-    local x1 = center.x + d * rotatedVector[1]
-    local y1 = center.y + d * rotatedVector[2]
-    local z1 = center.z + d * rotatedVector[3]
-
-    local x2 = center.x + d * rotatedVector2[1]
-    local y2 = center.y + d * rotatedVector2[2]
-    local z2 = center.z + d * rotatedVector2[3]
-
-    return vector.new(x1, y1, z1), vector.new(x2, y2, z2)
-end
 
 core.register_entity("wyrda:ball_lightning", {
     initial_properties = {
@@ -1062,21 +988,8 @@ core.register_entity("wyrda:ball_lightning", {
     on_step = function(self, dtime, moveresult)
         self.timer = self.timer + dtime
         if self.timer >= 1 then
-            for obj in core.objects_inside_radius(self.object:get_pos(), 5) do
+            for obj in core.objects_inside_radius(self.object:get_pos(), 3) do
                 if obj ~= self.object then
-                    local rot_h = self.object:get_rotation()
-                    local yaw = self.object:get_yaw()
-                    --local dir = vector.rotate(self.object:get_pos(), vector.new(rot.x, yaw, rot.z))
-                    local starting_pos = self.object:get_pos()
-
-                    local rot = vector.new(rot_h.x, yaw, rot_h.y)
-                    rot = vector.direction(self.object:get_pos(), -obj:get_pos())
-                    local d = 5
-
-                    local p1, p2 = calculate_points(starting_pos, rot, d)
-                    local dir = vector.direction(p1, p2)
-
-                    local lightning = core.add_entity(starting_pos, "wyrda:lightning", core.pos_to_string(dir))
                     core.add_particlespawner({
                         amount = 100,
                         time = 1,
@@ -1087,21 +1000,23 @@ core.register_entity("wyrda:ball_lightning", {
                             scale = 3,
                             blend = "screen",
                         },
-                        glow =14,
-                        attached = lightning,
+                        glow = 14,
+                        attached = obj,
                         pos = {
-                            min = vector.new(0.25, 0.25, 5),
-                            max = vector.new(-0.25, -0.25, -5),
+                            min = vector.new(0.75, 0.75, 0.75),
+                            max = vector.new(-0.75, -0.75, -0.75),
                         },
                     })
-                    --obj:set_hp(obj:get_hp() - 2)
+                    obj:set_hp(obj:get_hp() - 0.1)
                 end
             end
             self.timer = 0
         end
     end,
     get_staticdata = function(self) end,
-})]]--
+})
+
+--[[]]--
 
 -- Spells
 
@@ -1208,8 +1123,16 @@ wyrda.register_spell("disperim", {
         local objs = core.get_objects_inside_radius(player:get_pos(), 5)
         local positions = {}
         for i, obj in pairs(objs) do
-            if obj:get_player_name() ~= player:get_player_name() then
-                --obj:add_velocity(vector.offset(vector.multiply(vector.direction(player:get_pos(), obj:get_pos()), 5), 0, 10, 0))
+            
+            local entity_pos = vector.new(obj:get_pos().x, obj:get_pos().y, obj:get_pos().z)
+            local player_pos = vector.new(player:get_pos().x, obj:get_pos().y + 1.5, player:get_pos().z)
+            local vector_to_entity = vector.subtract(entity_pos, player_pos)
+            local normalized_vector_to_entity = vector.normalize(vector_to_entity)
+
+            local dot_product = vector.dot(player:get_look_dir(), normalized_vector_to_entity)
+            local angle_rads = math.acos(dot_product)
+            local angle_degs = angle_rads * (180 / math.pi)
+            if angle_degs < 15 then
                 table.insert(positions, obj)
             end
         end
@@ -1404,7 +1327,7 @@ wyrda.register_spell("flurra", {
     end,
 })
 
---[[wyrda.register_spell("fulst", {
+wyrda.register_spell("fulst", {
     name = "fulst",
     descname = "Fulst",
     desc = "Spark with electric power",
@@ -1460,14 +1383,10 @@ wyrda.register_spell("flurra", {
             attached = ball_lightning,
             pos_tween = {
                 style = "fwd",
-                reps = 1,
+                reps = 60,
                 start = 0.0,
                 { min = vector.new(0.25,  0.25,  0.25),
                   max = vector.new(-0.25,  -0.25,  -0.25), },
-                { min = vector.new(0.35,  0.35,  0.35),
-                  max = vector.new(-0.35,  -0.35,  -0.35), },
-                { min = vector.new(0.45,  0.45,  0.45),
-                  max = vector.new(-0.45,  -0.45,  -0.45), },
                 { min = vector.new(0.5,  0.5,  0.5),
                   max = vector.new(-0.5,  -0.5,  -0.5), },
             },
@@ -1478,6 +1397,7 @@ wyrda.register_spell("flurra", {
     end,
 })
 
+--[[
 wyrda.register_spell("hazum", {
     name = "hazum",
     descname = "Hazum",
